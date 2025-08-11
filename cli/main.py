@@ -73,6 +73,7 @@ def main():
     p_analyze.add_argument("--currency", default="SEK", help="Currency for display (SEK/EUR)")
     p_analyze.add_argument("--output", help="Optional path to save merged CSV")
     p_analyze.add_argument("--force-api", action="store_true", help="Force fetching prices from ENTSO-E API (bypass cache)")
+    p_analyze.add_argument("--json", action="store_true", help="Print JSON with percent of non-positive prices during production hours")
 
     # Backward-compatible alias
     p_merge = sub.add_parser("analyze-daily", help="(Alias) Analyze production with prices (auto hourly or daily-approx)")
@@ -81,6 +82,7 @@ def main():
     p_merge.add_argument("--currency", default="SEK", help="Currency for display (SEK/EUR)")
     p_merge.add_argument("--output", help="Optional path to save merged CSV")
     p_merge.add_argument("--force-api", action="store_true", help="Force fetching prices from ENTSO-E API (bypass cache)")
+    p_merge.add_argument("--json", action="store_true", help="Print JSON with percent of non-positive prices during production hours")
 
     args = parser.parse_args()
     if args.cmd == "inspect-production":
@@ -135,6 +137,23 @@ def main():
                 price_sek_per_kwh_hr.to_frame('sek_per_kwh'), how='left'
             )
             aligned['revenue_sek'] = aligned['prod_kwh'] * aligned['sek_per_kwh']
+            # JSON: percent non-positive during production hours
+            if args.json:
+                mask_prod = aligned['prod_kwh'] > 0
+                mask_price = aligned['sek_per_kwh'].notna()
+                mask_nonpos = aligned['sek_per_kwh'] <= 0
+                denom = int((mask_prod & mask_price).sum())
+                numer = int((mask_prod & mask_price & mask_nonpos).sum())
+                percent = (numer / denom * 100.0) if denom else 0.0
+                payload = {
+                    'granularity': 'hourly',
+                    'hours_with_production': denom,
+                    'hours_non_positive': numer,
+                    'non_positive_percent_hours': round(percent, 3),
+                }
+                import json as _json
+                print(_json.dumps(payload, ensure_ascii=False))
+                return
             # Summaries
             total_prod_kwh = float(aligned['prod_kwh'].sum())
             total_revenue_sek = float(aligned['revenue_sek'].sum())
@@ -184,6 +203,7 @@ def main():
 
             approx_total_revenue_sek = 0.0
             approx_neg_cost_sek = 0.0
+            json_payload = None
             if hourly_series:
                 approx_prod = pd.concat(hourly_series).sort_index()
                 price_hourly = prices_hourly['price_eur_per_mwh']
@@ -196,8 +216,33 @@ def main():
                 neg_mask_hr = aligned['sek_per_kwh'] < 0
                 approx_neg_cost_sek = float((-aligned.loc[neg_mask_hr, 'revenue_sek']).clip(lower=0).sum())
                 by_day = aligned.resample('D').sum(numeric_only=True)
+                if args.json:
+                    mask_prod = aligned['prod_kwh'] > 0
+                    mask_price = aligned['sek_per_kwh'].notna()
+                    mask_nonpos = aligned['sek_per_kwh'] <= 0
+                    denom = int((mask_prod & mask_price).sum())
+                    numer = int((mask_prod & mask_price & mask_nonpos).sum())
+                    percent = (numer / denom * 100.0) if denom else 0.0
+                    json_payload = {
+                        'granularity': 'daily-approx',
+                        'hours_with_production': denom,
+                        'hours_non_positive': numer,
+                        'non_positive_percent_hours': round(percent, 3),
+                    }
             else:
                 by_day = prod_df.copy()
+                if args.json:
+                    json_payload = {
+                        'granularity': 'daily-approx',
+                        'hours_with_production': 0,
+                        'hours_non_positive': 0,
+                        'non_positive_percent_hours': 0.0,
+                    }
+
+            if args.json:
+                import json as _json
+                print(_json.dumps(json_payload, ensure_ascii=False))
+                return
 
             total_prod_kwh = float(prod_df['production_kwh'].sum())
             print("Daily production (approx hourly) x price merge")
