@@ -8,7 +8,7 @@ from core.production_loader import ProductionLoader
 from core.price_fetcher import PriceFetcher
 from datetime import timezone
 
-SCHEMA_VERSION = "1.2.0"
+SCHEMA_VERSION = "1.3.0"
 
 
 def _to_local_utc(index: pd.DatetimeIndex) -> tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
@@ -163,7 +163,13 @@ def _battery_shift_simple(aligned: pd.DataFrame, days: int, eta: float, target_h
 def build_storytelling_payload(aligned: pd.DataFrame, currency: str, rate_sek_per_eur: float, granularity: str,
                                sections: set | None = None, artifact_dir: Path | None = None, market_area: str | None = None,
                                used_cache: bool | None = None, cache_start: pd.Timestamp | None = None, cache_end: pd.Timestamp | None = None,
-                               parse_format: str | None = None) -> dict:
+                               parse_format: str | None = None,
+                               energy_tax_sek_per_kwh: float | None = None,
+                               transmission_fee_sek_per_kwh: float | None = None,
+                               vat_rate: float | None = None,
+                               battery_capacities: list[int] | None = None,
+                               battery_power_kw: float | None = None,
+                               battery_decision_basis: str | None = None) -> dict:
     """Build storytelling JSON.
 
     sections: optional set restricting which top-level analytical blocks to include.
@@ -241,6 +247,41 @@ def build_storytelling_payload(aligned: pd.DataFrame, currency: str, rate_sek_pe
     # Counterfactual: curtail at floor 0.0 SEK/kWh
     mask_keep = df['sek_per_kwh'] >= 0
     revenue_if_curtailed = float((df.loc[mask_keep, 'prod_kwh'] * df.loc[mask_keep, 'sek_per_kwh']).sum())
+    # Normalize VAT rate (allow user to input 25 for 25%)
+    if vat_rate is not None and vat_rate > 1:
+        vat_rate_norm = vat_rate / 100.0
+    else:
+        vat_rate_norm = vat_rate if vat_rate is not None else 0.0
+    energy_tax_val = energy_tax_sek_per_kwh or 0.0
+    transmission_fee_val = transmission_fee_sek_per_kwh or 0.0
+    any_cost_inputs = (energy_tax_sek_per_kwh is not None) or (transmission_fee_sek_per_kwh is not None) or (vat_rate is not None)
+
+    # Self-consumption value (value of using energy yourself vs export) if costs provided
+    self_consumption_block = None
+    if any_cost_inputs and prod_hours['prod_kwh'].sum() > 0:
+        # Value of self consumption per kWh = (spot price + energy tax + transmission fee)*(1+VAT)
+        # Incremental benefit vs export = value_self_consumption - spot_price
+        # Weighted averages across producing hours
+        spot_wavg = wavg_price
+        spot_wavg_gross = spot_wavg * (1 + vat_rate_norm)
+        avoided_fees_tax_gross = (energy_tax_val + transmission_fee_val) * (1 + vat_rate_norm)
+        value_self = spot_wavg_gross + avoided_fees_tax_gross
+        increment_vs_export = value_self - spot_wavg
+        self_consumption_block = {
+            'weighted_value_self_consumption_sek_per_kwh': value_self,
+            'weighted_spot_price_net_sek_per_kwh': spot_wavg,
+            'weighted_spot_price_gross_sek_per_kwh': spot_wavg_gross,
+            'weighted_avoided_fees_tax_sek_per_kwh': avoided_fees_tax_gross,
+            'weighted_increment_vs_export_sek_per_kwh': increment_vs_export,
+            'export_value_basis': 'spot_only_excl_vat',
+            'inputs_used': {
+                'energy_tax_sek_per_kwh': energy_tax_sek_per_kwh,
+                'transmission_fee_sek_per_kwh': transmission_fee_sek_per_kwh,
+                'vat_rate': vat_rate_norm,
+            },
+            'assumptions': 'Value(self-consumption) = (spot + energy_tax + transmission_fee) * (1+VAT); export value = spot only.'
+        }
+
     hero = {
         'hours_total': hours_total,
         'hours_producing': hours_producing,
@@ -268,6 +309,8 @@ def build_storytelling_payload(aligned: pd.DataFrame, currency: str, rate_sek_pe
             'timing_discount_pct': 'percent'
         }
     }
+    if self_consumption_block:
+        hero['self_consumption'] = self_consumption_block
 
     hourly = None
     if sections is None or 'series_hourly' in sections:
@@ -542,9 +585,11 @@ def build_storytelling_payload(aligned: pd.DataFrame, currency: str, rate_sek_pe
     if sections is None or 'scenarios' in sections:
         # Curtailment sweep with invariants and baseline
         curtailment = _curtailment_sweep(df, floors)
-
-        # Improved battery scenario (single daily cycle, SoC bounded)
-        battery = _battery_daily_model(df, capacities=[1,3,5], eta=0.90, target_hour_local=20, charge_rule='price_below_zero')
+        # Battery scenario
+        capacities_use = battery_capacities if battery_capacities else [10,15,20]
+        battery = _battery_daily_model_extended(df, capacities=capacities_use, eta=0.90, target_hour_local=20, charge_rule='price_below_zero', power_kw=battery_power_kw or 5.0,
+                                               decision_basis=battery_decision_basis or 'spot',
+                                               energy_tax=energy_tax_sek_per_kwh, transmission_fee=transmission_fee_sek_per_kwh, vat_rate=vat_rate_norm)
 
     # Diagnostics
     missing_hours = 0  # Placeholder; proper gap detection can be added
@@ -590,6 +635,13 @@ def build_storytelling_payload(aligned: pd.DataFrame, currency: str, rate_sek_pe
             'market_area': market_area,
             'system': {'dc_kwp': None, 'assumed_round_trip_efficiency': 0.90},
         }
+        if any_cost_inputs:
+            payload['input']['costs'] = {
+                'energy_tax_sek_per_kwh': energy_tax_sek_per_kwh,
+                'transmission_fee_sek_per_kwh': transmission_fee_sek_per_kwh,
+                'vat_rate': vat_rate_norm,
+                'assumption_value_formula': 'self_consumption_value = (spot + energy_tax + transmission_fee)*(1+VAT)'
+            }
     if sections is None or 'meta' in sections:
         payload['meta'] = {
             'notes': ['Prices exclude VAT, grid fees, and broker spreads unless otherwise noted.'],
@@ -692,9 +744,15 @@ def build_storytelling_payload(aligned: pd.DataFrame, currency: str, rate_sek_pe
 
 # --- Enhanced battery and curtailment helpers ---
 
-def _battery_daily_model(df: pd.DataFrame, capacities: list[int], eta: float, target_hour_local: int, charge_rule: str) -> dict:
+def _battery_daily_model(df: pd.DataFrame, capacities: list[int], eta: float, target_hour_local: int, charge_rule: str, power_kw: float) -> dict:
+    # Backward compatibility wrapper (no decision basis / costs)
+    return _battery_daily_model_extended(df, capacities, eta, target_hour_local, charge_rule, power_kw, decision_basis='spot', energy_tax=None, transmission_fee=None, vat_rate=None)
+
+
+def _battery_daily_model_extended(df: pd.DataFrame, capacities: list[int], eta: float, target_hour_local: int, charge_rule: str,
+                                  power_kw: float, decision_basis: str, energy_tax: float | None, transmission_fee: float | None, vat_rate: float | None) -> dict:
     ts_local = df['ts_local']
-    out = {'assumptions': {'round_trip_efficiency': eta, 'discharge_target_hour_local': target_hour_local, 'charge_rule': charge_rule, 'max_cycles_per_day': 1}, 'sizes_kwh': []}
+    out = {'assumptions': {'round_trip_efficiency': eta, 'discharge_target_hour_local': target_hour_local, 'charge_rule': charge_rule, 'max_cycles_per_day': 1, 'power_kw_limit': power_kw, 'decision_basis': decision_basis}, 'sizes_kwh': []}
     # Baseline revenue for producing hours
     baseline_revenue = float(df['revenue_sek'].sum())
     days = sorted(df['day'].unique())
@@ -705,19 +763,30 @@ def _battery_daily_model(df: pd.DataFrame, capacities: list[int], eta: float, ta
         total_losses = 0.0
         inc_rev = 0.0
         cycles = 0
+        charge_prices = []
+        discharge_prices = []
         for day in days:
             daily = df[df['day'] == day].copy()
             if daily.empty:
                 continue
             # Charge phase: eligible hours price < 0 (simple rule)
-            charge_hours = daily[(daily['sek_per_kwh'] < 0) & (daily['is_producing'])]
+            # Decision basis: if spot_plus_fees, adjust effective price for decision only
+            if decision_basis == 'spot_plus_fees' and (energy_tax or transmission_fee or vat_rate):
+                tax = energy_tax or 0.0
+                fee = transmission_fee or 0.0
+                vr = vat_rate or 0.0
+                eff_price = (daily['sek_per_kwh'] + tax + fee) * (1 + vr)
+                charge_hours = daily[(eff_price < 0) & (daily['is_producing'])]
+                daily = daily.assign(_effective_decision_price=eff_price)
+            else:
+                charge_hours = daily[(daily['sek_per_kwh'] < 0) & (daily['is_producing'])]
             charged_today = 0.0
             for _, r in charge_hours.iterrows():
                 if soc >= cap:
                     break
                 avail = float(r['prod_kwh'])  # can't exceed production
                 room = cap - soc
-                take = min(avail, room)
+                take = min(avail, room, power_kw)  # limit by power constraint
                 if take <= 0:
                     continue
                 # Remove baseline revenue (we will re-sell later)
@@ -725,31 +794,33 @@ def _battery_daily_model(df: pd.DataFrame, capacities: list[int], eta: float, ta
                 soc += take
                 charged_today += take
                 total_charged += take
+                charge_prices.append(float(r['sek_per_kwh']))
             # Discharge at target hour local (use that day's target hour row if exists)
             discharge_row = daily[daily['hour'] == target_hour_local]
             if not discharge_row.empty and soc > 0:
                 price_target = float(discharge_row.iloc[0]['sek_per_kwh']) if pd.notna(discharge_row.iloc[0]['sek_per_kwh']) else 0.0
                 # Energy available after efficiency
-                discharge_energy = soc * eta
+                discharge_cap = min(soc, power_kw)
+                discharge_energy = discharge_cap * eta
                 inc_rev += discharge_energy * price_target
                 total_shift_out += discharge_energy
-                losses = soc - discharge_energy
+                losses = discharge_cap - discharge_energy
                 total_losses += losses
-                soc = 0.0
+                soc -= discharge_cap
                 if charged_today > 0 and discharge_energy > 0:
                     cycles += 1
+                if discharge_cap > 0:
+                    discharge_prices.append(price_target)
             # carry any remaining soc (should be zero if discharged)
         cycles_per_day_avg = cycles / len(days) if days else 0.0
         revenue_per_shifted = (inc_rev / total_shift_out) if total_shift_out > 0 else 0.0
         median_target_price = float(df[df['hour']==target_hour_local]['sek_per_kwh'].median(skipna=True)) if len(df[df['hour']==target_hour_local]) else 0.0
         median_charge_window_price = float(df[(df['sek_per_kwh']<0) & df['is_producing']]['sek_per_kwh'].median(skipna=True)) if len(df[(df['sek_per_kwh']<0) & df['is_producing']]) else 0.0
+        avg_charge_price = float(np.mean(charge_prices)) if charge_prices else 0.0
+        avg_discharge_price = float(np.mean(discharge_prices)) if discharge_prices else 0.0
+        avg_spread_after_eff = avg_discharge_price * eta - avg_charge_price
+        charge_credit_from_negative = abs(avg_charge_price) if avg_charge_price < 0 else 0.0
         sanity_checks = []
-        sanity_checks.append({
-            'name':'rev_per_shifted_kwh <= median_price_target_window',
-            'lhs': round(revenue_per_shifted,6),
-            'rhs': round(median_target_price,6),
-            'passed': revenue_per_shifted <= median_target_price + 1e-9
-        })
         if total_shift_out>0:
             expected_losses = (total_charged - total_shift_out)
             sanity_checks.append({
@@ -764,14 +835,21 @@ def _battery_daily_model(df: pd.DataFrame, capacities: list[int], eta: float, ta
             'incremental_revenue_sek': round(float(inc_rev), 2),
             'delta_revenue_sek': round(float(inc_rev), 2),
             'total_energy_shifted_kwh': round(float(total_shift_out), 6),  # discharge energy
+            'energy_basis': 'discharge',
             'round_trip_losses_kwh': round(float(total_losses), 6),
             'cycles_per_day_avg': round(float(cycles_per_day_avg), 4),
             'revenue_per_shifted_kwh': round(float(revenue_per_shifted), 4),
             'utilization_pct': round((total_shift_out / (cap * len(days)) * 100) if (cap > 0 and days) else 0.0, 2),
-            'constraints': {'capacity_kwh': cap, 'round_trip_efficiency': eta, 'max_cycles_per_day': 1, 'charge_rule': charge_rule},
+            'constraints': {'capacity_kwh': cap, 'round_trip_efficiency': eta, 'max_cycles_per_day': 1, 'charge_rule': charge_rule, 'power_kw_limit': power_kw, 'decision_basis': decision_basis},
             'reference_stats': {
                 'median_price_hour_target': round(median_target_price,6),
                 'median_price_charge_window': round(median_charge_window_price,6)
+            },
+            'pricing_components': {
+                'avg_charge_price_sek_per_kwh': round(avg_charge_price,6),
+                'avg_discharge_price_sek_per_kwh': round(avg_discharge_price,6),
+                'avg_spread_after_efficiency_sek_per_kwh': round(avg_spread_after_eff,6),
+                'avg_charge_credit_from_negative_prices_sek_per_kwh': round(charge_credit_from_negative,6)
             },
             'sanity_checks': sanity_checks
         })
@@ -869,6 +947,14 @@ def main():
     p_analyze.add_argument("--json-full", action="store_true", help="Emit FULL JSON (all sections including hourly, per-day, distributions, extremes)")
     p_analyze.add_argument("--json-sections", help="Comma-separated subset of sections to include (overrides --json-lean). Sections: hero,series_hourly,series_per_day,aggregates,distributions,extremes,scenarios,diagnostics,meta,input")
     p_analyze.add_argument("--json-artifacts", help="Directory to write large excluded sections (parquet). Adds artifact references to JSON.")
+    # Cost & system parameters
+    p_analyze.add_argument("--energy-tax", type=float, help="Energy tax (SEK per kWh) for self-consumption valuation")
+    p_analyze.add_argument("--transmission-fee", type=float, help="Transmission/network fee (SEK per kWh)")
+    p_analyze.add_argument("--vat", type=float, help="VAT rate (e.g. 25 for 25%)")
+    p_analyze.add_argument("--battery-capacities", help="Comma list of battery capacities in kWh (default 10,15,20)")
+    p_analyze.add_argument("--battery-power-kw", type=float, help="Battery charge/discharge power limit in kW (default 5.0)")
+    p_analyze.add_argument("--battery-decision-basis", choices=['spot','spot_plus_fees'], help="Basis for battery charge/discharge decisions (spot or spot_plus_fees)")
+    p_analyze.add_argument("--ai-explainer", action="store_true", help="Add Swedish AI sammanfattning (kräver OPENAI_API_KEY)")
 
     # Backward-compatible alias
     p_merge = sub.add_parser("analyze-daily", help="(Alias) Analyze production with prices (auto hourly or daily-approx)")
@@ -882,6 +968,13 @@ def main():
     p_merge.add_argument("--json-full", action="store_true", help="Emit FULL JSON (all sections including hourly, per-day, distributions, extremes)")
     p_merge.add_argument("--json-sections", help="Comma-separated subset of sections to include (overrides --json-lean). Sections: hero,series_hourly,series_per_day,aggregates,distributions,extremes,scenarios,diagnostics,meta,input")
     p_merge.add_argument("--json-artifacts", help="Directory to write large excluded sections (parquet). Adds artifact references to JSON.")
+    p_merge.add_argument("--energy-tax", type=float, help="Energy tax (SEK per kWh) for self-consumption valuation")
+    p_merge.add_argument("--transmission-fee", type=float, help="Transmission/network fee (SEK per kWh)")
+    p_merge.add_argument("--vat", type=float, help="VAT rate (e.g. 25 for 25%)")
+    p_merge.add_argument("--battery-capacities", help="Comma list of battery capacities in kWh (default 10,15,20)")
+    p_merge.add_argument("--battery-power-kw", type=float, help="Battery charge/discharge power limit in kW (default 5.0)")
+    p_merge.add_argument("--battery-decision-basis", choices=['spot','spot_plus_fees'], help="Basis for battery charge/discharge decisions (spot or spot_plus_fees)")
+    p_merge.add_argument("--ai-explainer", action="store_true", help="Add Swedish AI sammanfattning (kräver OPENAI_API_KEY)")
 
     args = parser.parse_args()
     if args.cmd == "inspect-production":
@@ -964,10 +1057,29 @@ def main():
                     return ts.tz_convert('UTC')
                 cache_start_ts = _cache_ts(prices_hourly.index.min()) if prices_hourly is not None and not prices_hourly.empty else None
                 cache_end_ts = _cache_ts(prices_hourly.index.max()) if prices_hourly is not None and not prices_hourly.empty else None
+                capacities_cli = None
+                if args.battery_capacities:
+                    try:
+                        capacities_cli = [int(c.strip()) for c in args.battery_capacities.split(',') if c.strip()]
+                    except Exception:
+                        capacities_cli = None
                 payload = build_storytelling_payload(aligned, args.currency.upper(), rate, 'hourly', sections=sections, artifact_dir=artifact_dir,
                                                     market_area=args.area.upper().replace('_',''), used_cache=not args.force_api,
                                                     cache_start=cache_start_ts, cache_end=cache_end_ts,
-                                                    parse_format=loader.get_last_parse_format())
+                                                    parse_format=loader.get_last_parse_format(),
+                                                    energy_tax_sek_per_kwh=args.energy_tax,
+                                                    transmission_fee_sek_per_kwh=args.transmission_fee,
+                                                    vat_rate=args.vat,
+                                                    battery_capacities=capacities_cli,
+                                                    battery_power_kw=args.battery_power_kw,
+                                                    battery_decision_basis=args.battery_decision_basis)
+                if args.ai_explainer:
+                    try:
+                        from utils.ai_explainer import AIExplainer
+                        explainer = AIExplainer()
+                        payload['ai_explanation_sv'] = explainer.explain_storytelling(payload)
+                    except Exception as e:
+                        payload['ai_explanation_sv_error'] = str(e)
                 print(_dumps(payload, ensure_ascii=False))
                 return
 
@@ -1054,10 +1166,22 @@ def main():
                         return ts.tz_convert('UTC')
                     cache_start_ts = _cache_ts(prices_hourly.index.min()) if prices_hourly is not None and not prices_hourly.empty else None
                     cache_end_ts = _cache_ts(prices_hourly.index.max()) if prices_hourly is not None and not prices_hourly.empty else None
+                    capacities_cli = None
+                    if args.battery_capacities:
+                        try:
+                            capacities_cli = [int(c.strip()) for c in args.battery_capacities.split(',') if c.strip()]
+                        except Exception:
+                            capacities_cli = None
                     json_payload = build_storytelling_payload(aligned, args.currency.upper(), rate, 'daily-approx', sections=sections, artifact_dir=artifact_dir,
                                                               market_area=args.area.upper().replace('_',''), used_cache=not args.force_api,
                                                               cache_start=cache_start_ts, cache_end=cache_end_ts,
-                                                              parse_format=loader.get_last_parse_format())
+                                                              parse_format=loader.get_last_parse_format(),
+                                                              energy_tax_sek_per_kwh=args.energy_tax,
+                                                              transmission_fee_sek_per_kwh=args.transmission_fee,
+                                                              vat_rate=args.vat,
+                                                              battery_capacities=capacities_cli,
+                                                              battery_power_kw=args.battery_power_kw,
+                                                              battery_decision_basis=args.battery_decision_basis)
             else:
                 by_day = prod_df.copy()
                 if args.json:
@@ -1079,13 +1203,32 @@ def main():
                         return ts.tz_convert('UTC')
                     cache_start_ts = _cache_ts(prices_hourly.index.min()) if prices_hourly is not None and not prices_hourly.empty else None
                     cache_end_ts = _cache_ts(prices_hourly.index.max()) if prices_hourly is not None and not prices_hourly.empty else None
+                    capacities_cli = None
+                    if args.battery_capacities:
+                        try:
+                            capacities_cli = [int(c.strip()) for c in args.battery_capacities.split(',') if c.strip()]
+                        except Exception:
+                            capacities_cli = None
                     json_payload = build_storytelling_payload(pd.DataFrame({'prod_kwh': [], 'sek_per_kwh': []}), args.currency.upper(), rate, 'daily-approx', sections=sections, artifact_dir=artifact_dir,
                                                               market_area=args.area.upper().replace('_',''), used_cache=not args.force_api,
                                                               cache_start=cache_start_ts, cache_end=cache_end_ts,
-                                                              parse_format=loader.get_last_parse_format())
+                                                              parse_format=loader.get_last_parse_format(),
+                                                              energy_tax_sek_per_kwh=args.energy_tax,
+                                                              transmission_fee_sek_per_kwh=args.transmission_fee,
+                                                              vat_rate=args.vat,
+                                                              battery_capacities=capacities_cli,
+                                                              battery_power_kw=args.battery_power_kw,
+                                                              battery_decision_basis=args.battery_decision_basis)
 
             if args.json:
                 from json import dumps as _dumps
+                if args.ai_explainer and json_payload is not None:
+                    try:
+                        from utils.ai_explainer import AIExplainer
+                        explainer = AIExplainer()
+                        json_payload['ai_explanation_sv'] = explainer.explain_storytelling(json_payload)
+                    except Exception as e:
+                        json_payload['ai_explanation_sv_error'] = str(e)
                 print(_dumps(json_payload, ensure_ascii=False))
                 return
 

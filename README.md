@@ -62,6 +62,14 @@ uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 
 # Export excluded heavy sections (e.g. hourly) to parquet artifacts directory while keeping lean JSON
 uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-artifacts data/artifacts > lean_with_refs.json
 
+# Include Swedish energy tax / grid fees & VAT for self-consumption valuation
+uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json \
+	--energy-tax 0.39 --transmission-fee 0.20 --vat 25 > with_costs.json
+
+# Override battery capacities and power & use fee-inclusive decision basis
+uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json \
+	--battery-capacities 12,18 --battery-power-kw 3 --battery-decision-basis spot_plus_fees > battery_custom.json
+
 # Inspect a production file format (no prices fetched)
 uv run se-cli inspect-production "data/samples/Produktion - Viktor hourly.csv"
 ```
