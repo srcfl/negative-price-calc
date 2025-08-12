@@ -72,11 +72,15 @@ class AIExplainer:
         bullet_line = '; '.join(story_bits)
 
         prompt = (
-            "Skriv ett engagerande men sakligt stycke på svenska (EN enda paragraf) som återger hur solcellsperioden gått. "
-            "Utgå från dessa nycklar (rå fakta): " + bullet_line + ". "
-            "Väv in siffrorna naturligt i löpande text, förklara kort vad de betyder för hushållets ekonomi och nämn effekten av negativa priser om med. "
-            "Avsluta med 1 kort konkret förbättringsidé (t.ex. bättre timing, ev. liten batterilagring eller prisgolv om relevant). "
-            "Ton: positivt nykter, ingen överdrift, ingen punktlista, inga rubriker. Max 110 ord."
+            "Skriv en engagerande, säljande men saklig sammanfattning på svenska max två paragrafer för en villaägare. "
+            "Vi är Sourceful Energy och vi erbjuder Zap som styr växelriktaren när elpriset är ≤0 SEK/kWh så att produktion inte säljs bort till noll eller minus, utan istället nyttjas smart (egenanvändning, laddning eller paus). "
+            "Utgå från dessa rådata: " + bullet_line + ". "
+            "Förklara kort vad utfallet innebär i kronor och koppla till lösningarna: hur Zap hade kunnat stoppa export, flytta energi i tid, eller lägga prisgolv (använd X om 'möjligt golv' finns) och vad ett litet batteri kan ge (använd +Y SEK om det finns). "
+            "Håll dig strikt till siffrorna som står; inga påhittade värden. Om någon uppgift saknas: utelämna den. "
+            "Avsluta med en tydlig CTA: aktivera Zap nu för att slippa noll/negativtpris-timmar. "
+            "Ton: professionell, trygg, lätt sälj. Inga rubriker, ingen punktlista. Max 300 ord."
+            "Vi är Sourceful Energy och vi erbjuder Zap som styr växelriktaren när elpriset är ≤0 SEK/kWh så att produktion inte säljs bort till noll eller minus, utan istället nyttjas smart (egenanvändning, laddning eller paus). "
+            "Lyft TYDLIGT att många/En stor del av timmarna låg vid noll eller negativa priser (använd den uppgivna andelen om den finns) – el som ger låg eller ingen nytta. "
         )
         try:
             ai_text = self._call_openai(prompt)
