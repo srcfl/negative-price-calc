@@ -47,19 +47,26 @@ DATABASE_PATH=data/price_data.db
 
 ### Command Line Interface
 
+The modern entrypoint is the `se-cli` analyze command (auto-detects hourly vs daily totals and approximates daily to an hourly shape for analysis):
+
 ```bash
-# Basic analysis
-uv run python main.py --production-file data/production.csv --area SE_4
+# Lean storytelling JSON (default sections: hero, aggregates (weekly+monthly), diagnostics, scenarios, meta, input)
+uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json > lean.json
 
-# Specific date range
-uv run python main.py --production-file data/production.csv --area SE_4 --start-date 2024-06-01 --end-date 2024-06-30
+# Full storytelling JSON (includes hourly series, per-day arrays, distributions, extremes)
+uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-full > full.json
 
-# With AI explanation
-uv run python main.py --production-file data/production.csv --area SE_4 --ai-explain
+# Custom subset (only hero + distributions)
+uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-sections hero,distributions > custom.json
 
-# Save results to JSON
-uv run python main.py --production-file data/production.csv --area SE_4 --output results.json
+# Export excluded heavy sections (e.g. hourly) to parquet artifacts directory while keeping lean JSON
+uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-artifacts data/artifacts > lean_with_refs.json
+
+# Inspect a production file format (no prices fetched)
+uv run se-cli inspect-production "data/samples/Produktion - Viktor hourly.csv"
 ```
+
+Legacy `main.py` options still exist but are being phased out in favor of `se-cli`.
 
 ### Python API
 

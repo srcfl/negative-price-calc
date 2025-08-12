@@ -18,6 +18,8 @@ class ProductionLoader:
         self.ai_reader = AITableReader()
 
     def load_production(self, file_path: str, use_llm: bool = False) -> Tuple[pd.DataFrame, str]:
+        # reset parse format trace
+        self.last_parse_format = None
         is_excel = str(file_path).lower().endswith((".xlsx", ".xls", ".xlsm"))
         # 1) Base case: read normally and accept only if the header looks standard
         try:
@@ -85,7 +87,6 @@ class ProductionLoader:
         median_rows_per_day = rows_per_day.median() if not rows_per_day.empty else 0
         p75_rows_per_day = rows_per_day.quantile(0.75) if not rows_per_day.empty else 0
         multi_row_days_ratio = (rows_per_day >= 2).mean() if not rows_per_day.empty else 0
-        # Classify as hourly only if there are typically 2 or more rows per day
         is_hourly = (
             (median_rows_per_day >= 2) or
             (avg_rows_per_day >= 2.0) or
@@ -239,58 +240,59 @@ class ProductionLoader:
         return out
 
     def _parse_datetime_series(self, date_series: pd.Series, time_series: Optional[pd.Series] = None) -> pd.Series:
-        # 1) Parse the date component robustly (handles Excel serials, strings, and tz-aware)
+        # 1) Parse date component
         s = date_series
         if pd.api.types.is_datetime64_any_dtype(s):
             ts_date = pd.to_datetime(s, errors='coerce')
         else:
             if np.issubdtype(getattr(s, 'dtype', object), np.number):
                 ts_date = pd.to_datetime(s, unit='D', origin='1899-12-30', errors='coerce')
+                self.last_parse_format = self.last_parse_format or 'excel_serial'
             else:
                 s_str = s.astype(str).str.strip()
-                ts_date = pd.to_datetime(s_str, errors='coerce', dayfirst=True)
-        # Drop tz info if present (to ensure datetime64[ns])
+                ts_date = pd.to_datetime(s_str, format='%Y-%m-%d', errors='coerce', utc=False)
+                if ts_date.notna().mean() < 0.8:
+                    ts_dt_try = pd.to_datetime(s_str, format='%Y-%m-%d %H:%M', errors='coerce', utc=False)
+                    if ts_dt_try.notna().mean() >= 0.5:
+                        ts_date = ts_dt_try
+                        self.last_parse_format = 'YYYY-MM-DD HH:MM'
+                    else:
+                        ts_date = pd.to_datetime(s_str, errors='coerce', dayfirst=False)
+                        self.last_parse_format = self.last_parse_format or 'auto_no_dayfirst'
+                else:
+                    self.last_parse_format = self.last_parse_format or 'YYYY-MM-DD'
         try:
-            # If tz-aware dtype
             if isinstance(ts_date.dtype, pd.DatetimeTZDtype):
                 ts_date = ts_date.dt.tz_convert(None)
         except Exception:
             pass
-        # If still not datetime64-any (e.g., object with mixed tz), coerce via string
         if not pd.api.types.is_datetime64_any_dtype(ts_date):
-            ts_date = pd.to_datetime(ts_date.astype(str), errors='coerce', dayfirst=True)
-
-        # 2) If no time column, return date-only timestamps
+            ts_date = pd.to_datetime(ts_date.astype(str), errors='coerce', dayfirst=False)
+        # 2) No time column
         if time_series is None or ts_date.isna().all():
             return ts_date
-
-        # 3) Derive hour-of-day from time_series
+        # 3) Derive hour
         t = time_series
         hours_series = None
         if np.issubdtype(getattr(t, 'dtype', object), np.number):
             tnum = pd.to_numeric(t, errors='coerce')
-            # Support Excel time fractions (0..1) and hour-of-day (0..23)
             hours = np.where((tnum >= 0) & (tnum <= 1), (tnum * 24), (tnum % 24))
-            # Round to nearest hour and clip to [0,23]
             hours_series = pd.Series(np.clip(np.round(hours), 0, 23), index=tnum.index).astype('Int64')
         else:
             t_str = t.astype(str).str.strip()
-            # Try parse times on a dummy date; force UTC to avoid mixed tz object dtype
             t_dt = pd.to_datetime('2000-01-01 ' + t_str, errors='coerce', utc=True)
             try:
                 hours_series = t_dt.dt.hour.astype('Int64')
             except Exception:
-                # Last resort: extract first 1-2 digit number as hour
                 hh = t_str.str.extract(r'(\d{1,2})')[0]
                 hours_series = pd.to_numeric(hh, errors='coerce').round().clip(0, 23).astype('Int64')
-
-        # 4) Combine date + hour using timedelta (avoids building mixed-tz strings)
-        # Ensure date dtype supports .dt
         if not pd.api.types.is_datetime64_any_dtype(ts_date):
-            ts_date = pd.to_datetime(ts_date.astype(str), errors='coerce', dayfirst=True)
+            ts_date = pd.to_datetime(ts_date.astype(str), errors='coerce', dayfirst=False)
         base_dates = ts_date.dt.floor('D')
         hours_td = pd.to_timedelta(hours_series.fillna(0).astype('Int64'), unit='h')
         ts = base_dates + hours_td
-        # Where combination failed, fall back to the date-only
         ts = ts.where(ts.notna(), ts_date)
         return ts
+
+    def get_last_parse_format(self) -> Optional[str]:
+        return getattr(self, 'last_parse_format', None)
