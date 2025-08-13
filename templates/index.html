@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Negativa Prisanalyseraren</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            /* Sourceful Brand Colors */
+            --pencil-grey: #2B2B2B;
+            --air-force-blue: #2F4A66;
+            --surfie-green: #017E7A;
+            --energetic-teal: #00FF84;
+            
+            /* Extended Palette */
+            --light-grey: #F8F9FA;
+            --medium-grey: #E9ECEF;
+            --dark-grey: #495057;
+            --warning-red: #DC3545;
+            --warning-orange: #FD7E14;
+            --success-green: #28A745;
+            
+            /* High Contrast Text Colors */
+            --text-on-teal: #FFFFFF;
+            --text-on-red: #FFFFFF;
+            --text-on-gradient: #FFFFFF;
+            --text-primary: #1A1A1A;
+            --text-secondary: #495057;
+            --text-muted: #6C757D;
+            
+            /* Spacing System */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-2xl: 48px;
+            --spacing-3xl: 64px;
+            
+            /* Typography Scale */
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 2rem;
+            --font-size-4xl: 2.5rem;
+            --font-size-5xl: 3rem;
+            
+            /* Line Heights for Better Readability */
+            --line-height-tight: 1.25;
+            --line-height-normal: 1.6;
+            --line-height-relaxed: 1.8;
+            --line-height-loose: 2;
+            
+            /* Border Radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 3px rgba(43, 43, 43, 0.12);
+            --shadow-md: 0 4px 6px rgba(43, 43, 43, 0.1);
+            --shadow-lg: 0 10px 15px rgba(43, 43, 43, 0.1);
+            --shadow-xl: 0 20px 25px rgba(43, 43, 43, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: var(--line-height-normal);
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #FFFFFF 0%, #F0F4F8 100%);
+            min-height: 100vh;
+            font-size: var(--font-size-base);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--air-force-blue) 0%, var(--surfie-green) 100%);
+            padding: var(--spacing-2xl);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--energetic-teal) 0%, transparent 70%);
+            opacity: 0.2;
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: var(--spacing-sm);
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+        }
+        
+        .subtitle {
+            color: var(--energetic-teal);
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .upload-section {
+            background: white;
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid rgba(47, 74, 102, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 600;
+            color: var(--air-force-blue);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .file-input {
+            width: 100%;
+            padding: var(--spacing-xl) var(--spacing-md);
+            border: 3px dashed var(--surfie-green);
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, rgba(1, 126, 122, 0.03) 0%, rgba(0, 255, 132, 0.03) 100%);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            position: relative;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .file-input:hover {
+            border-color: var(--energetic-teal);
+            background: linear-gradient(135deg, rgba(1, 126, 122, 0.08) 0%, rgba(0, 255, 132, 0.08) 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .file-input.drag-over {
+            border-color: var(--energetic-teal) !important;
+            background: linear-gradient(135deg, rgba(0, 255, 132, 0.15) 0%, rgba(1, 126, 122, 0.15) 100%) !important;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(0, 255, 132, 0.3);
+        }
+        
+        .file-input p {
+            margin: 0;
+            font-size: 16px;
+            color: var(--air-force-blue);
+            font-weight: 500;
+        }
+        
+        .file-input .drag-instruction {
+            font-size: 14px;
+            color: var(--dark-grey);
+            margin-top: var(--spacing-sm);
+            opacity: 0.7;
+        }
+        
+        .file-input input {
+            display: none;
+        }
+        
+        select, input[type="text"] {
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 2px solid var(--medium-grey);
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+        }
+        
+        select:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: var(--surfie-green);
+            box-shadow: 0 0 0 3px rgba(1, 126, 122, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .analyze-btn {
+            background: linear-gradient(135deg, var(--surfie-green) 0%, var(--energetic-teal) 100%);
+            color: var(--pencil-grey);
+            padding: var(--spacing-md) var(--spacing-xl);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .analyze-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .analyze-btn:hover:not(:disabled)::before {
+            width: 600px;
+            height: 600px;
+        }
+        
+        .analyze-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 255, 132, 0.3);
+        }
+        
+        .analyze-btn:disabled {
+            background: var(--medium-grey);
+            color: var(--dark-grey);
+            cursor: not-allowed;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .results-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results-header {
+            padding: 30px 30px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .results-content {
+            padding: 30px;
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: var(--light-grey);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--air-force-blue);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .metric-value {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        
+        .negative {
+            color: var(--warning-red);
+            position: relative;
+        }
+        
+        .positive {
+            color: var(--surfie-green);
+        }
+        
+        /* Bleeding animation for negative values */
+        @keyframes bleed {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(10px); opacity: 0; }
+        }
+        
+        
+        .error-message {
+            background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(253, 126, 20, 0.1) 100%);
+            border: 2px solid var(--warning-red);
+            color: var(--warning-red);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            margin-top: var(--spacing-lg);
+            font-weight: 500;
+        }
+        
+        .download-btn {
+            background: var(--air-force-blue);
+            color: white;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: var(--spacing-lg);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .download-btn:hover {
+            background: var(--pencil-grey);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .selected-file {
+            color: var(--surfie-green);
+            font-weight: 600;
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: rgba(1, 126, 122, 0.1);
+            border-radius: var(--radius-md);
+            display: inline-block;
+        }
+        
+        /* Impact Visualization Styles */
+        .impact-banner {
+            background: linear-gradient(135deg, var(--warning-red) 0%, var(--warning-orange) 100%);
+            color: white;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-xl);
+            position: relative;
+            overflow: hidden;
+            animation: alertPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes alertPulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3); }
+            50% { box-shadow: 0 8px 30px rgba(220, 53, 69, 0.5); }
+        }
+        
+        .impact-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            100% { left: 100%; }
+        }
+        
+        .sourceful-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--pencil-grey);
+            color: var(--energetic-teal);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: sourceful-glow 3s ease-in-out infinite;
+        }
+        
+        .sourceful-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 255, 132, 0.3);
+            background: var(--energetic-teal);
+            color: var(--pencil-grey);
+        }
+        
+        .sourceful-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--energetic-teal);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .sourceful-badge:hover::before {
+            background: var(--pencil-grey);
+        }
+        
+        @keyframes sourceful-glow {
+            0%, 100% { 
+                box-shadow: var(--shadow-lg);
+            }
+            50% { 
+                box-shadow: 0 4px 20px rgba(0, 255, 132, 0.4), var(--shadow-lg);
+            }
+        }
+        
+        /* Enhanced Mobile Readability */
+        @media (max-width: 768px) {
+            :root {
+                --font-size-base: 0.9375rem;
+                --font-size-lg: 1rem;
+                --font-size-xl: 1.125rem;
+                --font-size-2xl: 1.25rem;
+                --font-size-3xl: 1.5rem;
+                --font-size-4xl: 1.75rem;
+                --font-size-5xl: 2rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.75rem;
+                line-height: 1.2;
+            }
+            
+            .container {
+                padding: 12px;
+            }
+            
+            .header {
+                padding: var(--spacing-lg);
+            }
+            
+            .upload-section, .results-content {
+                padding: var(--spacing-lg);
+            }
+            
+            .metric-value {
+                font-size: 1.75rem;
+            }
+            
+            .metric-card {
+                padding: var(--spacing-md);
+            }
+            
+            .sourceful-badge {
+                bottom: 10px;
+                right: 10px;
+                font-size: 0.7rem;
+            }
+        }
+        
+        /* Improved Readability Classes */
+        .high-contrast-text {
+            text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            font-weight: 500;
+        }
+        
+        .readable-paragraph {
+            line-height: var(--line-height-relaxed);
+            max-width: 65ch;
+            margin: 0 auto;
+        }
+        
+        /* Enhanced Focus States for Accessibility */
+        *:focus-visible {
+            outline: 3px solid var(--energetic-teal);
+            outline-offset: 2px;
+        }
+        
+        /* Better Contrast for Gradients */
+        .gradient-overlay {
+            position: relative;
+        }
+        
+        .gradient-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            border-radius: inherit;
+        }
+        
+        /* Enhanced Typography for Swedish Content */
+        .swedish-content {
+            font-feature-settings: 'liga' 1, 'kern' 1;
+            hyphens: auto;
+            word-spacing: 0.05em;
+        }
+        
+        /* Improved Data Visualization */
+        .metric-card {
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--air-force-blue) 0%, var(--surfie-green) 100%);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover::after {
+            transform: scaleX(1);
+        }
+        
+        /* Scannable Section Headers */
+        .section-header {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 24px;
+        }
+        
+        .section-header::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--surfie-green) 0%, var(--energetic-teal) 100%);
+            border-radius: 2px;
+        }
+        
+        /* Improved Mobile Touch Targets */
+        @media (max-width: 768px) {
+            button, .download-btn, select, input {
+                min-height: 44px;
+                padding: 12px 16px;
+            }
+            
+            .metric-grid {
+                gap: 16px;
+            }
+            
+            .explanation-card {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+        }
+        
+        /* High Contrast Mode Support */
+        @media (prefers-contrast: high) {
+            .ai-content-box {
+                background: rgba(255,255,255,0.25) !important;
+                border: 2px solid white !important;
+            }
+            
+            .metric-value {
+                font-weight: 800;
+            }
+            
+            .explanation-card {
+                border-width: 2px;
+                border-color: currentColor;
+            }
+        }
+        
+        /* Reduced Motion Support */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Print Styles for Better Readability */
+        @media print {
+            body {
+                font-size: 11pt;
+                line-height: 1.5;
+                color: black;
+                background: white;
+            }
+            
+            .header, .sourceful-badge {
+                display: none;
+            }
+            
+            .metric-card {
+                border: 1px solid #333;
+                page-break-inside: avoid;
+            }
+            
+            .explanation-card {
+                page-break-inside: avoid;
+                border: 1px solid #333;
+                margin-bottom: 12pt;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Negativa Prisanalyseraren</h1>
+            <p class="subtitle">Upptäck när din export kostar dig pengar</p>
+        </div>
+
+        <div class="upload-section">
+            <form id="analysisForm">
+                <div class="form-group">
+                    <label for="production_file">Produktionsdata (CSV eller Excel)</label>
+                    <div class="file-input" onclick="document.getElementById('production_file').click()">
+                        <input type="file" id="production_file" name="production_file" accept=".csv,.xlsx,.xls" required>
+                        <p>📁 Klicka för att välja din produktionsfil</p>
+                        <div class="drag-instruction">Eller dra och släpp din CSV/Excel-fil här</div>
+                        <div class="selected-file" id="selectedFile"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="area">Svenskt elområde</label>
+                    <select id="area" name="area" required>
+                        <option value="SE_1">SE_1 - Norra Sverige (Luleå)</option>
+                        <option value="SE_2">SE_2 - Mellersta Sverige (Sundsvall)</option>
+                        <option value="SE_3">SE_3 - Mellersta Sverige (Stockholm)</option>
+                        <option value="SE_4" selected>SE_4 - Södra Sverige (Malmö)</option>
+                    </select>
+                </div>
+
+
+
+                <!-- Email input for lead capture -->
+                <div class="form-group">
+                    <label for="userEmailUpfront">Din e-postadress (krävs för AI-analys)</label>
+                    <input type="email" id="userEmailUpfront" name="email" required 
+                           placeholder="din.epost@exempel.se"
+                           style="width: 100%; padding: 12px 16px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; background: white;">
+                    <div style="font-size: 0.875rem; color: #6C757D; margin-top: 4px;">
+                        Vi använder din e-post för att spara analysen åt dig. Inga spam eller reklam.
+                    </div>
+                </div>
+
+                <button type="submit" class="analyze-btn" id="analyzeBtn">
+                    <span style="position: relative; z-index: 1;">Analysera med AI-sammanfattning</span>
+                </button>
+            </form>
+        </div>
+
+
+        <div class="results-section" id="resultsSection">
+            <div class="results-header">
+                <h2>📊 Analysresultat</h2>
+                <div id="analysisMetadata"></div>
+            </div>
+            <div class="results-content" id="resultsContent">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // File input handling
+        const fileInput = document.getElementById('production_file');
+        const fileInputArea = document.querySelector('.file-input');
+        const selectedFileDiv = document.getElementById('selectedFile');
+        
+        function handleFileSelect(file) {
+            if (file) {
+                selectedFileDiv.textContent = `✅ ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+                fileInput.files = createFileList(file);
+            }
+        }
+        
+        function createFileList(file) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            return dt.files;
+        }
+        
+        // Regular file input change
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            handleFileSelect(file);
+        });
+        
+        // Drag and drop functionality
+        fileInputArea.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.add('drag-over');
+        });
+        
+        fileInputArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.add('drag-over');
+        });
+        
+        fileInputArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Only remove drag-over if we're leaving the file input area entirely
+            if (!this.contains(e.relatedTarget)) {
+                this.classList.remove('drag-over');
+            }
+        });
+        
+        fileInputArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                // Check file type
+                const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+                const fileExtension = file.name.toLowerCase().split('.').pop();
+                const allowedExtensions = ['csv', 'xlsx', 'xls'];
+                
+                if (allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension)) {
+                    handleFileSelect(file);
+                } else {
+                    alert('Please select a CSV or Excel file (.csv, .xlsx, .xls)');
+                }
+            }
+        });
+        
+        // Prevent default drag behaviors on document
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+        
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+        });
+
+        // Get user geolocation if available
+        let userLocation = null;
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    userLocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    };
+                },
+                function(error) {
+                    console.log('Geolocation not available:', error.message);
+                },
+                { timeout: 5000, maximumAge: 300000 } // 5 second timeout, cache for 5 minutes
+            );
+        }
+
+        // Form submission
+        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('analyzeBtn');
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span><span style="position: relative; z-index: 1;">Analyserar...</span>';
+            resultsSection.style.display = 'none';
+            
+            // Clear previous results
+            resultsContent.innerHTML = '';
+            
+            try {
+                const formData = new FormData(this);
+                
+                // Add geolocation data if available
+                if (userLocation) {
+                    formData.append('latitude', userLocation.latitude);
+                    formData.append('longitude', userLocation.longitude);
+                    formData.append('location_accuracy', userLocation.accuracy);
+                }
+                
+                // Add browser info
+                formData.append('browser_info', JSON.stringify({
+                    userAgent: navigator.userAgent,
+                    language: navigator.language,
+                    platform: navigator.platform,
+                    cookieEnabled: navigator.cookieEnabled,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    screenResolution: `${screen.width}x${screen.height}`,
+                    windowSize: `${window.innerWidth}x${window.innerHeight}`
+                }));
+                
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayResults(result);
+                } else {
+                    showError(result.error || 'Analysis failed');
+                }
+                
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                // Reset button
+                btn.disabled = false;
+                btn.innerHTML = '<span style="position: relative; z-index: 1;">Analysera med AI-sammanfattning</span>';
+            }
+        });
+
+        let analysisData = null; // Store analysis data globally
+
+        function displayResults(result) {
+            analysisData = result; // Store for later use
+            showActualResults();
+        }
+
+        function showActualResults() {
+            const { analysis, metadata } = analysisData;
+            const hero = analysis.hero;
+            
+            // Extract values from new Swedish structure with fallbacks to old structure
+            const exportFörluster = hero.export_förluster || hero.investering_bloder || {};
+            const produktion = hero.produktion || {};
+            const tidsanalys = hero.tidsanalys || {};
+            const tekniska = hero.tekniska_mått || hero; // Fallback to root hero for old structure
+            const zap = hero.zap_lösning || {};
+            
+            // Show metadata
+            document.getElementById('analysisMetadata').innerHTML = `
+                <p><strong>File:</strong> ${metadata.filename} | <strong>Area:</strong> ${metadata.area} | <strong>Currency:</strong> ${metadata.currency}</p>
+                <p><strong>Data Type:</strong> ${metadata.granularity} | <strong>Analyzed:</strong> ${new Date(metadata.analyzed_at).toLocaleString()}</p>
+                <div style="background: #FFF3CD; border: 1px solid #FFECB5; color: #856404; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.9rem;">
+                    <strong>⚠️ Viktigt:</strong> Analysen baseras på spotpris exklusive moms och eventuella påslag från ditt elbolag. Det faktiska resultatet kan variera beroende på ditt specifika elavtal.
+                </div>
+            `;
+            
+            // Create AI analysis section
+            let aiAnalysisHtml = '';
+            console.log('AI analysis data:', analysis.ai_explanation_sv);
+            if (analysis.ai_explanation_sv) {
+                aiAnalysisHtml = `
+                    <div class="ai-analysis-container" style="background: linear-gradient(135deg, #2F4A66 0%, #017E7A 100%); color: white; padding: 32px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 8px 25px rgba(47, 74, 102, 0.2); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: radial-gradient(circle, #00FF84 0%, transparent 70%); opacity: 0.3;"></div>
+                        <h3 style="margin-top: 0; margin-bottom: 20px; display: flex; align-items: center; position: relative; z-index: 1; font-size: 1.5rem;">
+                            <span style="margin-left: 10px; font-weight: 700; letter-spacing: -0.02em; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">AI Analys & Insikter</span>
+                        </h3>
+                        <div class="ai-content-box" style="background: rgba(255,255,255,0.15); padding: 24px; border-radius: 12px; line-height: 1.9; font-size: 1.05rem; position: relative; z-index: 1; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); font-weight: 400; letter-spacing: 0.01em;">
+                            ${analysis.ai_explanation_sv.replace(/\n/g, '<br>')}
+                        </div>
+                        <div style="font-size: 0.9rem; opacity: 1; margin-top: 20px; font-weight: 500; display: flex; align-items: center; gap: 8px; position: relative; z-index: 1; text-shadow: 0 1px 2px rgba(0,0,0,0.15);">
+                            <span style="width: 8px; height: 8px; background: #00FF84; border-radius: 50%; display: inline-block; animation: pulse 2s ease-in-out infinite;"></span>
+                            Powered by GPT-5-mini • Exportanalys
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // ZAP Solution highlight box - focus on production loss
+            let zapSolutionHtml = '';
+            const zapProduktion = zap.produktion_under_negativa_priser;
+            if (zapProduktion && zapProduktion.timmar > 0) {
+                zapSolutionHtml = `
+                    <div class="bleeding-investment-container" style="background: linear-gradient(135deg, #DC3545 0%, #FD7E14 100%); color: white; padding: 36px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 8px 25px rgba(220, 53, 69, 0.25); position: relative; overflow: hidden;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: rgba(255,255,255,0.2);"></div>
+                        <h3 style="margin-top: 0; margin-bottom: 24px; display: flex; align-items: center; font-weight: 700; font-size: 1.75rem; position: relative; z-index: 1; text-shadow: 0 2px 6px rgba(0,0,0,0.25);">
+                            <span style="margin-left: 10px;">${zap.problemet || 'Marknadsvillkoren försämrar din avkastning'}</span>
+                        </h3>
+                        <div style="background: rgba(255,255,255,0.18); padding: 28px; border-radius: 12px; line-height: 1.7; backdrop-filter: blur(10px); position: relative; z-index: 1; border: 1px solid rgba(255,255,255,0.25);">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; margin: 20px 0;">
+                                <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px);">
+                                    <div style="font-size: 2.25rem; font-weight: 700; margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1;">${zapProduktion.timmar}</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2);">Förlorade timmar</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px);">
+                                    <div style="font-size: 2.25rem; font-weight: 700; margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1;">${zapProduktion.kwh.toFixed(1)} kWh</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2);">Olönsam export</div>
+                                </div>
+                                <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px);">
+                                    <div style="font-size: 2.25rem; font-weight: 700; margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1;">${zapProduktion.dagar_drabbade}</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2);">Drabbade dagar</div>
+                                </div>
+                            </div>
+                            <div style="font-size: 1rem; margin: 20px 0; opacity: 1; text-align: center; line-height: 1.6; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.15);">
+                                ${zapProduktion.beskrivning || 'Denna energi gav ingen intäkt eller kostade pengar att exportera'}
+                            </div>
+                            <hr style="border: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent); margin: 24px 0;">
+                            <div style="font-size: 1.125rem; font-weight: 500; margin-bottom: 24px; line-height: 1.7; text-shadow: 0 1px 3px rgba(0,0,0,0.15);">
+                                ${zap.lösningen || 'Intelligent exportstyrning pausar automatiskt när marknaden är övermättad, vilket skyddar både din ekonomi och elnätets stabilitet'}
+                            </div>
+                            <a href="https://sourceful.energy/store/sourceful-energy-zap" target="_blank" style="display: block; background: #00FF84; color: #1A1A1A; padding: 20px 28px; border-radius: 12px; font-size: 1.25rem; font-weight: 700; text-align: center; margin-top: 24px; text-transform: uppercase; letter-spacing: 0.08em; box-shadow: 0 6px 20px rgba(0, 255, 132, 0.4); cursor: pointer; transition: all 0.3s ease; text-decoration: none;">
+                                ${zap.call_to_action || 'Optimera din anläggning'}
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Create metrics grid with Swedish focus
+            const metricsHtml = `
+                ${aiAnalysisHtml}
+                ${zapSolutionHtml}
+                
+                
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">${(produktion.total_kwh || tekniska.production_kwh || 0).toFixed(1)} kWh</div>
+                        <div class="metric-label">Total produktion</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value ${(produktion.totala_intakter_sek || tekniska.revenue_sek || 0) >= 0 ? 'positive' : 'negative'}">${(produktion.totala_intakter_sek || tekniska.revenue_sek || 0).toFixed(2)} ${metadata.currency}</div>
+                        <div class="metric-label">Totala intäkter</div>
+                    </div>
+                    <div class="metric-card" style="border-left-color: #DC3545;">
+                        <div class="metric-value negative">${(exportFörluster.andel_olönsam_export_pct || 0).toFixed(1)}%</div>
+                        <div class="metric-label">Export vid negativa priser</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${(produktion.genomsnittspris_erhållet_sek_per_kwh || tekniska.realized_price_wavg_sek_per_kwh || 0).toFixed(3)} ${metadata.currency}/kWh</div>
+                        <div class="metric-label">Genomsnittspris erhållet</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0) <= 0 ? 'negative' : 'positive'}">${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0).toFixed(1)}%</div>
+                        <div class="metric-label">Timing-förlust</div>
+                    </div>
+                </div>
+                
+                <div class="explanations-container" style="background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%); padding: 32px; border-radius: 16px; margin-top: 32px; border: 1px solid rgba(47, 74, 102, 0.15);">
+                    <h3 style="color: #2F4A66; font-weight: 700; margin-bottom: 24px; font-size: 1.375rem; letter-spacing: -0.01em;">Förklaring av nyckeltal</h3>
+                    <div style="margin-left: 0; line-height: 1.8; font-size: 0.9375rem;">
+                        <div class="explanation-card" style="margin-bottom: 24px; padding: 20px; background: white; border-radius: 12px; border-left: 4px solid #DC3545; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block; margin-bottom: 8px;">Export vid negativa priser</strong>
+                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;"><strong style="color: #DC3545; font-weight: 600;">${(exportFörluster.andel_olönsam_export_pct || 0).toFixed(1)}%</strong> av din export skedde vid negativa marknadsförhållanden. Detta inträffar när elnätet har överskott av förnybar energi och du får betala för att exportera eller erhåller noll ersättning.</span>
+                        </div>
+                        <div class="explanation-card" style="margin-bottom: 24px; padding: 20px; background: white; border-radius: 12px; border-left: 4px solid #FD7E14; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block; margin-bottom: 8px;">Marknadstiming: ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0).toFixed(1)}% avvikelse</strong>
+                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;">
+                                ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0) < 0 ? 
+                                `Du erhåller ${Math.abs((produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0)).toFixed(1)}% lägre intäkter än marknadssnittet eftersom din export sammanfaller med perioder av överproduktion i elnätet. Detta är ett strukturellt problem som förvärras när alltfler exporterar samtidigt.` : 
+                                `Din export sker vid gynnsamma marknadstidpunkter och ger ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0).toFixed(1)}% högre intäkter än genomsnittet.`}
+                            </span>
+                        </div>
+                        <div class="explanation-card" style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, rgba(0, 255, 132, 0.1) 0%, rgba(1, 126, 122, 0.1) 100%); border-radius: 12px; border-left: 4px solid #00FF84; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block;">Nätnytta och ekonomisk optimering</strong>
+                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;">Intelligent exportstyrning bidrar till elnätets stabilitet genom att minska överproduktion vid kritiska tidpunkter. För din anläggning innebär detta en årlig optimering på <strong style="color: #017E7A; font-weight: 600;">${(hero.lösningspotential?.möjlig_besparing_med_prisgolv_sek || hero.counterfactuals?.delta_sek || 0).toFixed(0)} ${metadata.currency}</strong> genom att undvika export när marknaden är övermättad.</span>
+                        </div>
+                        <div class="explanation-card" style="margin-bottom: 0; padding: 20px; background: white; border-radius: 12px; border-left: 4px solid #2F4A66; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block; margin-bottom: 8px;">Framtidsutsikt och regeländringar</strong>
+                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;">Din anläggning påverkades av negativa priser under flera perioder. <strong style="color: #2F4A66;">Viktigt:</strong> Den nuvarande skattereduktionen på 60 öre/kWh upphör vid årsskiftet 2025/2026. Utan detta stöd blir negativa priser ännu mer kostsamma för din investering. Dessutom införs effekttariffer som ytterligare bestraffar export vid olämpliga tidpunkter.</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; text-align: center;">
+                    <a href="https://sourceful.energy/store/sourceful-energy-zap" target="_blank" class="cta-btn" style="display: inline-block; background: linear-gradient(135deg, #00FF84, #017E7A); color: white; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(0, 255, 132, 0.3); transition: all 0.3s ease;">
+                        🛒 Köp Zap för att stoppa förlusterna
+                    </a>
+                    <div style="margin-top: 16px;">
+                        <a href="https://sourceful.energy/" target="_blank" style="color: #017E7A; text-decoration: none; font-size: 14px; font-weight: 500;">
+                            Läs mer om Sourceful Energy →
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Data Visualization -->
+                <div style="margin-top: 32px; background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                    <h3 style="color: #2F4A66; font-weight: 700; margin-bottom: 20px; font-size: 1.25rem;">📊 Visualisering av din export</h3>
+                    <div id="productionChart" style="width: 100%; height: 350px; border: 1px solid #E9ECEF; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #F8F9FA;">
+                        <div style="text-align: center; color: #6C757D;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
+                            <div style="font-size: 16px; font-weight: 500;">Export per månad</div>
+                            <div style="font-size: 14px; margin-top: 8px; opacity: 0.8;">Andel av månadsproduktionen vid negativa marknadsförhållanden</div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 16px; height: 16px; background: #00FF84; border-radius: 4px;"></div>
+                            <span style="font-size: 14px; color: #495057;">Total export (kWh)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 16px; height: 16px; background: #DC3545; border-radius: 4px;"></div>
+                            <span style="font-size: 14px; color: #495057;">Export vid negativa priser (kWh)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 16px; height: 16px; background: #2F4A66; border-radius: 4px;"></div>
+                            <span style="font-size: 14px; color: #495057;">Andel negativ export (%)</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('resultsContent').innerHTML = metricsHtml;
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            // Store results for download
+            window.analysisResults = analysisData;
+            
+            // Generate visualization
+            generateProductionChart(analysis);
+            
+            // Scroll to results
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+
+        function generateProductionChart(analysis) {
+            const aggregates = analysis.aggregates;
+            if (!aggregates || !aggregates.monthly) {
+                console.log('No monthly data available');
+                return; // No data to visualize
+            }
+            
+            const monthlyData = aggregates.monthly.slice(0, 12); // Max 12 months
+            if (monthlyData.length === 0) return;
+            
+            // DEBUG: Log the raw monthly data structure
+            console.log('Monthly data structure:', monthlyData[0]);
+            console.log('All monthly data:', monthlyData);
+            
+            // Chart dimensions - wider for dual axis
+            const width = 900;
+            const height = 300;
+            const margin = { top: 30, right: 80, bottom: 50, left: 70 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // Find max values for scaling (wait for monthsWithPercentage to be calculated)
+            const maxProduction = Math.max(...monthlyData.map(d => d.production_kwh || 0));
+            
+            // Calculate percentage for each month using available fields
+            const monthsWithPercentage = monthlyData.map(d => {
+                // The monthly aggregates contain:
+                // - production_kwh: total production for month
+                // - non_positive_percent_hours: percentage of production hours that were non-positive
+                // - hours_with_production: total hours with production
+                // - hours_non_positive: hours with non-positive prices during production
+                
+                console.log(`Month ${d.month} available fields:`, Object.keys(d));
+                console.log(`Month ${d.month}:`, {
+                    production_kwh: d.production_kwh,
+                    non_positive_percent_hours: d.non_positive_percent_hours,
+                    hours_with_production: d.hours_with_production,
+                    hours_non_positive: d.hours_non_positive
+                });
+                
+                // Use the already calculated percentage from the backend
+                const percentage = d.non_positive_percent_hours || 0;
+                
+                // For visualization, estimate negative energy using the percentage
+                // This is an approximation since energy/hour varies, but gives reasonable visualization
+                const estimatedNegativeEnergy = d.production_kwh * (percentage / 100);
+                
+                console.log(`Month ${d.month} - Using ${percentage.toFixed(1)}% (${estimatedNegativeEnergy.toFixed(1)} kWh estimated)`);
+                
+                return {
+                    ...d,
+                    negative_percentage: percentage,
+                    estimated_negative_kwh: estimatedNegativeEnergy
+                };
+            });
+            
+            // Now calculate max values after processing
+            const maxNegative = Math.max(...monthsWithPercentage.map(d => d.estimated_negative_kwh || 0));
+            const maxValue = Math.max(maxProduction, maxNegative);
+            const maxPercentage = Math.max(...monthsWithPercentage.map(d => d.negative_percentage), 1); // Ensure at least 1% scale
+            
+            console.log('All percentages:', monthsWithPercentage.map(d => d.negative_percentage));
+            console.log('Max percentage for scale:', maxPercentage);
+            console.log('Max production:', maxProduction, 'Max negative:', maxNegative, 'Max value:', maxValue);
+            
+            if (maxValue === 0) return; // No data to show
+            
+            // Create SVG
+            let svgContent = `
+                <svg width="${width}" height="${height}" style="background: white;">
+                    <!-- Grid lines -->`;
+            
+            // Add horizontal grid lines for kWh (left axis)
+            for (let i = 0; i <= 5; i++) {
+                const y = margin.top + (chartHeight / 5) * i;
+                const value = Math.round(maxValue * (1 - i / 5));
+                svgContent += `
+                    <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" stroke="#E9ECEF" stroke-width="1"/>
+                    <text x="${margin.left - 10}" y="${y + 4}" text-anchor="end" font-size="12" fill="#6C757D">${value} kWh</text>`;
+            }
+            
+            // Add percentage scale on right axis
+            for (let i = 0; i <= 5; i++) {
+                const y = margin.top + (chartHeight / 5) * i;
+                const percentage = Math.round(maxPercentage * (1 - i / 5));
+                if (!isNaN(percentage) && isFinite(percentage)) {
+                    svgContent += `
+                        <text x="${width - margin.right + 10}" y="${y + 4}" text-anchor="start" font-size="12" fill="#2F4A66">${percentage}%</text>`;
+                }
+            }
+            
+            // Add bars for each month
+            const barWidth = chartWidth / monthsWithPercentage.length * 0.6;
+            const barSpacing = chartWidth / monthsWithPercentage.length;
+            
+            // Store line points for percentage line
+            let linePoints = [];
+            
+            monthsWithPercentage.forEach((monthData, index) => {
+                const x = margin.left + index * barSpacing + (barSpacing - barWidth) / 2;
+                const xCenter = x + barWidth / 2;
+                const totalExport = monthData.production_kwh || 0; // Total production for the month
+                const negative = monthData.estimated_negative_kwh || 0; // Estimated negative energy
+                const percentage = monthData.negative_percentage;
+                
+                // Total export bar (light green background)
+                const exportHeight = (totalExport / maxValue) * chartHeight;
+                const exportY = margin.top + chartHeight - exportHeight;
+                
+                // Negative export bar (red, overlaid) - make sure it's visible
+                const negativeHeight = (negative / maxValue) * chartHeight;
+                const negativeY = margin.top + chartHeight - negativeHeight;
+                
+                // Draw total export first (green background)
+                if (exportHeight > 0) {
+                    svgContent += `
+                        <rect x="${x}" y="${exportY}" width="${barWidth}" height="${exportHeight}" 
+                              fill="#00FF84" stroke="white" stroke-width="1" opacity="0.7"/>
+                    `;
+                }
+                
+                // Draw negative export on top (red, should be visible)
+                if (negativeHeight > 0) {
+                    svgContent += `
+                        <rect x="${x}" y="${negativeY}" width="${barWidth}" height="${negativeHeight}" 
+                              fill="#DC3545" stroke="white" stroke-width="1" opacity="1.0"/>
+                    `;
+                }
+                
+                // Percentage point for line chart
+                const percentY = margin.top + chartHeight - (percentage / maxPercentage) * chartHeight;
+                linePoints.push(`${xCenter},${percentY}`);
+                
+                // Percentage dot - show for all months, even 0%
+                if (!isNaN(percentY) && isFinite(percentY)) {
+                    svgContent += `
+                        <circle cx="${xCenter}" cy="${percentY}" r="4" fill="#2F4A66" stroke="white" stroke-width="2"/>
+                    `;
+                }
+                
+                // Month label
+                const monthName = new Date(monthData.month + '-01').toLocaleDateString('sv-SE', { month: 'short' });
+                svgContent += `
+                    <text x="${xCenter}" y="${height - margin.bottom + 20}" text-anchor="middle" font-size="12" fill="#495057">${monthName}</text>
+                `;
+            });
+            
+            // Add percentage line - make it more visible
+            if (linePoints.length > 1) {
+                const validPoints = linePoints.filter(point => {
+                    const [x, y] = point.split(',').map(Number);
+                    return !isNaN(x) && !isNaN(y) && isFinite(x) && isFinite(y);
+                });
+                
+                if (validPoints.length > 1) {
+                    svgContent += `
+                        <polyline points="${validPoints.join(' ')}" stroke="#2F4A66" stroke-width="3" fill="none" opacity="1.0"/>
+                    `;
+                }
+            }
+            
+            // Add axis labels
+            svgContent += `
+                    <text x="${margin.left + chartWidth/2}" y="${height - 5}" text-anchor="middle" font-size="14" font-weight="600" fill="#2F4A66">Månad</text>
+                    <text x="25" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="13" font-weight="600" fill="#00FF84" transform="rotate(-90, 25, ${margin.top + chartHeight/2})">Export (kWh)</text>
+                    <text x="${width - 25}" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="13" font-weight="600" fill="#2F4A66" transform="rotate(90, ${width - 25}, ${margin.top + chartHeight/2})">Andel negativ (%)</text>
+                </svg>
+            `;
+            
+            // Update the chart container
+            document.getElementById('productionChart').innerHTML = svgContent;
+        }
+
+        function showError(message) {
+            document.getElementById('resultsContent').innerHTML = `
+                <div class="error-message">
+                    <strong>❌ Error:</strong> ${message}
+                </div>
+            `;
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        
+    </script>
+    <a href="https://sourceful.energy" target="_blank" class="sourceful-badge" style="text-decoration: none; color: var(--energetic-teal); background: var(--pencil-grey); transition: all 0.3s ease;">
+        POWERED BY SOURCEFUL
+    </a>
+    
+    <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #6C757D; text-align: center; pointer-events: none; z-index: 1000;">
+        Made with ❤️ in Kalmar, Sweden
+    </div>
+</body>
+</html>

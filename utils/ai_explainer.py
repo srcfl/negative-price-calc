@@ -27,12 +27,10 @@ class AIExplainer:
 
         hero = payload.get('hero', {}) or {}
         counterfactuals = hero.get('counterfactuals') or {}
-        scenarios = (payload.get('scenarios') or {})
-        battery = scenarios.get('battery_shift') or {}
-        batt_sizes = battery.get('sizes_kwh', []) if battery else []
-        best_batt = max(batt_sizes, key=lambda x: x.get('delta_revenue_sek', 0)) if batt_sizes else None
+        # Focus only on export optimization, no battery calculations
 
-        # --- Extract metrics ---
+        # --- Extract metrics with focus on pain points ---
+        # Traditional metrics
         prod = float(hero.get('production_kwh') or 0)
         rev = float(hero.get('revenue_sek') or 0)
         neg_val = float(hero.get('negative_value_sek') or 0)
@@ -40,24 +38,47 @@ class AIExplainer:
         timing_disc = float(hero.get('timing_discount_pct') or 0)
         delta_if_floor = float(counterfactuals.get('delta_sek') or 0)
         lost_energy_at_floor0 = counterfactuals.get('lost_energy_kwh_at_floor_0')
+        
+        # NEW: Extract Swedish pain-focused metrics
+        export_förluster = hero.get('export_förluster', {})
+        zap_lösning = hero.get('zap_lösning', {})
+        timmar_kostat = export_förluster.get('timmar_som_kostat_dig', 0)
+        kwh_förlust = export_förluster.get('kwh_exporterat_med_förlust', 0)
+        procent_olönsam = export_förluster.get('andel_olönsam_export_pct', 0)
+        kostnad_export = export_förluster.get('kostnad_negativ_export_sek', 0)
+        zap_besparing = zap_lösning.get('besparing_per_år_sek', 0)
+        zap_månader = zap_lösning.get('återbetalningstid', {}).get('månader', 0)
 
+        # Prioritize emotional impact facts
         facts: Dict[str, Any] = {
             'produktion_kwh': round(prod, 1),
             'intakter_sek': round(rev, 0),
         }
-        if neg_val > 0:
-            facts['negativt_varde_sek'] = round(neg_val, 0)
+        
+        # LEAD WITH PAIN POINTS - updated for export focus
+        if timmar_kostat > 0:
+            facts['timmar_som_kostat_dig'] = int(timmar_kostat)
+        if kwh_förlust > 0:
+            facts['kwh_exporterat_med_förlust'] = round(kwh_förlust, 1)
+        if procent_olönsam > 0:
+            facts['andel_olönsam_export_pct'] = round(procent_olönsam, 1)
+        if kostnad_export > 0:
+            facts['kostnad_negativ_export_sek'] = round(kostnad_export, 0)
+        
+        # ZAP SOLUTION FACTS - Focus on export optimization
+        zap_export = zap_lösning.get('export_under_negativa_priser', {})
+        if zap_export.get('timmar', 0) > 0:
+            facts['zap_negativa_timmar'] = zap_export.get('timmar', 0)
+        if zap_export.get('kwh', 0) > 0:
+            facts['zap_export_optimerad_kwh'] = round(zap_export.get('kwh', 0), 1)
+        if zap_export.get('dagar_drabbade', 0) > 0:
+            facts['zap_dagar_drabbade'] = zap_export.get('dagar_drabbade', 0)
+            
+        # Traditional metrics (lower priority)
         if neg_share > 0:
             facts['andel_neg_timmar_pct'] = round(neg_share, 1)
         if timing_disc != 0:
             facts['timing_rabatt_pct'] = round(timing_disc, 1)
-        if delta_if_floor > 0:
-            facts['prisgolv_potential_sek'] = round(delta_if_floor, 0)
-        if best_batt and (best_batt.get('delta_revenue_sek') or 0) > 0:
-            facts['batt_delta_sek'] = round(best_batt.get('delta_revenue_sek'), 0)
-            size_kwh = best_batt.get('size_kwh') or best_batt.get('size')
-            if size_kwh:
-                facts['batt_size_kwh'] = size_kwh
         if lost_energy_at_floor0:
             facts['energi_vid_golv0_kwh'] = round(float(lost_energy_at_floor0), 1)
 
@@ -100,36 +121,63 @@ class AIExplainer:
                 sval = f"{v:.2f}".rstrip('0').rstrip('.')
                 return sval.replace('.', ',')
             return str(v)
-        bits = [f"produktion {fmt(facts['produktion_kwh'])} kWh", f"intäkter {fmt(facts['intakter_sek'])} SEK"]
-        if 'negativt_varde_sek' in facts:
-            bits.append(f"negativt värde {fmt(facts['negativt_varde_sek'])} SEK")
+        
+        # Make totals absolutely clear and never say zero if there are problems
+        prod_val = facts.get('produktion_kwh', 0)
+        rev_val = facts.get('intakter_sek', 0) 
+        
+        # Only show totals if they make sense with the negative data
+        if prod_val > 0 and 'timmar_som_kostat_dig' in facts:
+            bits = [f"Årsproduktion {fmt(prod_val)} kWh", f"totala intäkter {fmt(rev_val)} SEK"]
+        else:
+            bits = [f"Anläggning med produktion och intäkter enligt data"]
+        
+        # EXPORT FOCUS - clearly mark these as export-specific
+        if 'timmar_som_kostat_dig' in facts:
+            bits.append(f"{fmt(facts['timmar_som_kostat_dig'])} timmar då export kostade pengar")
+        if 'kwh_exporterat_med_förlust' in facts:
+            bits.append(f"{fmt(facts['kwh_exporterat_med_förlust'])} kWh exporterat vid negativa priser")
+        if 'andel_olönsam_export_pct' in facts:
+            bits.append(f"{fmt(facts['andel_olönsam_export_pct'])}% av exporten var olönsam")
+            
+        # OPTIMIZATION POTENTIAL
+        if 'zap_negativa_timmar' in facts:
+            bits.append(f"Exportstyrning kan optimera {fmt(facts['zap_negativa_timmar'])} timmar")
+        if 'zap_export_optimerad_kwh' in facts:
+            bits.append(f"Styrning kan optimera {fmt(facts['zap_export_optimerad_kwh'])} kWh export")
+        if 'zap_dagar_drabbade' in facts:
+            bits.append(f"Påverkan kan minskas {fmt(facts['zap_dagar_drabbade'])} dagar")
+            
+        # Traditional metrics (lower priority)
         if 'andel_neg_timmar_pct' in facts:
             bits.append(f"{fmt(facts['andel_neg_timmar_pct'])}% timmar ≤0 SEK")
         if 'timing_rabatt_pct' in facts:
-            bits.append(f"timingrabatt {fmt(facts['timing_rabatt_pct'])}%")
-        if 'prisgolv_potential_sek' in facts:
-            bits.append(f"prisgolv potential +{fmt(facts['prisgolv_potential_sek'])} SEK")
-        if 'batt_delta_sek' in facts:
-            maybe_size = facts.get('batt_size_kwh')
-            size_str = f" ({maybe_size}kWh)" if maybe_size else ''
-            bits.append(f"batteri{size_str} +{fmt(facts['batt_delta_sek'])} SEK")
-        if 'energi_vid_golv0_kwh' in facts:
-            bits.append(f"energi vid golv 0 paus {fmt(facts['energi_vid_golv0_kwh'])} kWh")
+            bits.append(f"marknadstiming {fmt(facts['timing_rabatt_pct'])}% avvikelse")
         return '; '.join(bits)
 
     def _build_prompt(self, bullet_line: str, facts: Dict[str, Any]) -> str:
-        # Keep prompt compact to lower latency while retaining instructions
-        return (
-            "Skriv en kort engagerande svensk sammanfattning (1–2 stycken, max 220 ord) för en villaägare. "
-            "Vi är Sourceful Energy (tjänsten Zap) som automatiskt pausar export vid ≤0 SEK/kWh och kan styra mot egenanvändning, laddning eller batteri. "
-            f"Data: {bullet_line}. "
-            "Förklara värdet i kronor, lyft hur många timmar som låg vid 0/negativa priser om siffran finns, och hur prisgolv/batteri minskar tappet (använd endast givna siffror). "
-            "Inga nya siffror. Ingen lista eller rubrik. Avsluta med tydlig CTA att aktivera Zap nu för att undvika noll/negativtpris-timmar. Ton: professionell och trygg, lätt sälj." )
+        # Significantly shortened prompt as requested
+        has_zap_data = 'zap_negativa_timmar' in facts or 'zap_export_optimerad_kwh' in facts
+        
+        base_prompt = (
+            f"Skriv kortfattad svensk analys (max 120 ord) om export vid negativa spotpriser. Data: {bullet_line}. "
+            "Viktigt: Detta baseras på spotpris exklusive moms och påslag - faktiskt resultat varierar med elbolag. "
+            "Fokusera på: Hur stor andel av exporten skedde vid negativa priser. "
+            "Förklara att negativa priser = systemöverskott av förnybar energi där export kostar pengar. "
+            "60-öringens bortfall 2025/2026 förvärrar detta. "
+            "Lösning: Exportstyrning när priserna är negativa. "
+            "Skriv som löpande text, inga listor eller bullets."
+        )
+        
+        return base_prompt
 
     def _short_prompt(self, bullet_line: str) -> str:
         return (
-            f"Sammanfatta kort (1 stycke, max 90 ord) på svenska för villaägare baserat på: {bullet_line}. "
-            "Förklara effekten av negativa timmar och uppmana att aktivera Zap. Endast givna siffror." )
+            f"Kort teknisk analys (1 stycke, max 120 ord) av solcellsanläggning: {bullet_line}. "
+            "Tolkning: 'produktion' och 'intäkter' = totala värden, 'timmar som kostade' = negativa exportperioder. "
+            "Fokus: marknadsvillkor, systemöverskott, exportkostnader. "
+            "Nämn 60-öringens bortfall 2025/2026. Endast faktiska siffror."
+        )
 
     def _map_reason(self, reason: str) -> str:
         if 'auth' in reason or '401' in reason:
@@ -187,23 +235,30 @@ class AIExplainer:
         try:
             prod = facts.get('produktion_kwh')
             rev = facts.get('intakter_sek')
-            neg = facts.get('negativt_varde_sek')
-            negshare = facts.get('andel_neg_timmar_pct')
-            timing = facts.get('timing_rabatt_pct')
-            batt = facts.get('batt_delta_sek')
-            golv = facts.get('rekommenderat_golv')
-            parts = [f"Produktion {prod} kWh gav ca {rev} SEK."]
-            if neg:
-                parts.append(f"Negativa priser kostade ~{neg} SEK")
-            if negshare:
-                parts.append(f"({negshare}% av produktionstimmarna var ≤0 SEK)")
-            if timing is not None:
-                parts.append(f"Timing-rabatt: {timing}% mot enkelt snitt")
-            if golv is not None:
-                parts.append(f"Möjligt golv: {golv} SEK/kWh")
-            if batt:
-                parts.append(f"Batteriscenario +{batt} SEK")
-            parts.append(f"(AI fallback – {reason})")
+            timmar_kostat = facts.get('timmar_som_kostat_dig')
+            kwh_förlust = facts.get('kwh_exporterat_med_förlust')
+            kostnad = facts.get('kostnad_negativ_export_sek')
+            zap_timmar = facts.get('zap_negativa_timmar')
+            zap_kwh = facts.get('zap_export_optimerad_kwh')
+            
+            parts = [f"Anläggningen producerade {prod} kWh med totala intäkter {rev} SEK."]
+            
+            if timmar_kostat:
+                parts.append(f"Under {timmar_kostat} timmar kostade exporten pengar.")
+            if kwh_förlust:
+                parts.append(f"{kwh_förlust} kWh exporterades vid negativa priser.")
+            if kostnad:
+                parts.append(f"Exportkostnad: -{kostnad} SEK.")
+                
+            if zap_timmar or zap_kwh:
+                if zap_timmar:
+                    parts.append(f"Exportstyrning kan optimera {zap_timmar} timmar.")
+                if zap_kwh:
+                    parts.append(f"Potential att optimera {zap_kwh} kWh export.")
+            else:
+                parts.append("Intelligent exportstyrning kan förbättra resultatet.")
+                
+            parts.append(f"(Reservförklaring – {reason})")
             return ' '.join(parts)
         except Exception:
-            return f"AI-förklaring fallback misslyckades ({reason})."
+            return f"Förklaring misslyckades ({reason})."
