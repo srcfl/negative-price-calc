@@ -1,182 +1,241 @@
 # Negative Price Calculator
 
-A Python application for analyzing electricity prices and solar production data, focusing on negative price detection and cost analysis.
+En Python-applikation för att analysera elpriser och solcellsproduktion, med fokus på negativa priser och kostnadskalkylering.
 
 ## Features
 
-- **Price Data Fetching**: Automatic retrieval from ENTSO-E API with local caching
-- **CSV Format Detection**: Both traditional and AI-powered CSV parsing
-- **Negative Price Analysis**: Detailed cost analysis for negative price periods  
-- **Multi-currency Support**: EUR, SEK, USD, NOK, etc.
-- **AI Explanations**: OpenAI-powered analysis summaries in Swedish
-- **Database Management**: SQLite storage with automatic schema creation
+- **🔌 Prisdata från ENTSO-E**: Automatisk hämtning med lokal cache
+- **📊 CSV Format Detection**: AI-driven och traditionell CSV-parsing  
+- **💸 Negativ Prisanalys**: Detaljerad kostnadskalkyl för negativa prisperioder
+- **🌐 Webbgränssnitt**: Enkelt drag-and-drop interface för analys
+- **💱 Multi-valuta**: EUR, SEK, USD, NOK, etc.
+- **🤖 AI-förklaringar**: OpenAI-drivna sammanfattningar på svenska
+- **🔋 Batterisimulering**: Analys av energilagring för optimering
+- **📈 Omfattande rapportering**: JSON-export med detaljerade insikter
 
 ## Installation
 
-This project uses [uv](https://docs.astral.sh/uv/) for dependency management:
+Detta projekt använder [uv](https://docs.astral.sh/uv/) för dependency management:
 
 ```bash
-# Clone the repository
+# Klona repository
 git clone <repository-url>
 cd negative-price-calc
 
-# Install dependencies
+# Installera dependencies
 uv sync
 
-# Copy environment template
+# Kopiera environment template
 cp .env.example .env
-# Edit .env with your API keys
+# Redigera .env med dina API-nycklar
 ```
 
-## Configuration
+## Konfiguration
 
-Create a `.env` file with your API keys:
+Skapa en `.env`-fil med dina API-nycklar:
 
 ```bash
-# Required for ENTSO-E price data fetching
+# Krävs för ENTSO-E prisdata
 ENTSOE_API_KEY=your_entso_e_api_key_here
 
-# Required for AI features (OpenAI)
+# Krävs för AI-funktioner (OpenAI)
 OPENAI_API_KEY=your_openai_api_key_here
 
-# Optional: Database configuration
+# Valfritt: Databaskonfiguration
 DATABASE_PATH=data/price_data.db
 ```
 
-## Usage
+## Användning
 
-### Command Line Interface
+### 🌐 Webbgränssnitt
 
-The modern entrypoint is the `se-cli` analyze command (auto-detects hourly vs daily totals and approximates daily to an hourly shape for analysis):
+För enkel analys med grafiskt interface:
 
 ```bash
-# Lean storytelling JSON (default sections: hero, aggregates (weekly+monthly), diagnostics, scenarios, meta, input)
+# Starta webbapplikationen
+uv run python run_webapp.py
+
+# Öppna sedan din webbläsare på: http://localhost:8080
+```
+
+Funktioner:
+- **📁 Drag & drop** filuppladdning (CSV/Excel)
+- **⚙️ Interaktiv konfiguration** (område, valuta, inställningar)  
+- **🤖 AI-driven analys** med svenska sammanfattningar
+- **📊 Visuell resultatdashboard** med nyckeltal
+- **💾 Excel & JSON export** för rapporter och vidare analys
+- **📱 Mobilanpassad** responsiv design
+
+Se [WEBAPP.md](WEBAPP.md) för detaljerad dokumentation.
+
+### Kommandoradsinterface (CLI)
+
+Modern CLI med `se-cli`-kommando (auto-detekterar timvis vs daglig data och approximerar daglig till timvis för analys):
+
+```bash
+# Grundläggande JSON-analys (standard: hero, aggregates, diagnostics, scenarios, meta, input)
 uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json > lean.json
 
-# Full storytelling JSON (includes hourly series, per-day arrays, distributions, extremes)
+# Fullständig JSON-analys (inkluderar timvis data, per-dag arrays, distributioner, extremer)
 uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-full > full.json
 
-# Custom subset (only hero + distributions)
+# Anpassad subset (endast hero + distributioner)
 uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-sections hero,distributions > custom.json
 
-# Export excluded heavy sections (e.g. hourly) to parquet artifacts directory while keeping lean JSON
+# Exportera tunga sektioner till parquet-filer, behåll lean JSON
 uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-artifacts data/artifacts > lean_with_refs.json
 
-# Include Swedish energy tax / grid fees & VAT for self-consumption valuation
+# Inkludera svenska skatter/nätavgifter & moms för egenförbrukning
 uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json \
 	--energy-tax 0.39 --transmission-fee 0.20 --vat 25 > with_costs.json
 
-# Override battery capacities and power & use fee-inclusive decision basis
+# Anpassad batterikonfiguration med avgifts-inkluderande beslutsgrund
 uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json \
 	--battery-capacities 12,18 --battery-power-kw 3 --battery-decision-basis spot_plus_fees > battery_custom.json
 
-# Inspect a production file format (no prices fetched)
+# Inspektera produktionsfil (inga priser hämtas)
 uv run se-cli inspect-production "data/samples/Produktion - Viktor hourly.csv"
+
+# AI-förklaring på svenska (kräver OPENAI_API_KEY)
+uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --ai-explainer > with_ai.json
 ```
 
-Legacy `main.py` options still exist but are being phased out in favor of `se-cli`.
+Legacy `main.py` finns kvar men fasas ut till förmån för `se-cli`.
 
 ### Python API
 
 ```python
 from core.price_fetcher import PriceFetcher
 from core.production_loader import ProductionLoader
-from core.price_analyzer import PriceAnalyzer
 
-# Initialize components
+# Initialisera komponenter
 fetcher = PriceFetcher()
 loader = ProductionLoader()
-analyzer = PriceAnalyzer()
 
-# Load data
-production_df = loader.load_production_data('your_file.csv')
+# Ladda data
+production_df, granularity = loader.load_production('your_file.csv', use_llm=True)
 prices_df = fetcher.get_price_data('SE_4', start_date, end_date)
 
-# Analyze
-merged_df = analyzer.merge_data(prices_df, production_df)
-results = analyzer.analyze_data(merged_df)
+# För storytelling JSON, använd CLI-funktionerna
+from cli.main import build_storytelling_payload
+import pandas as pd
+
+# Slå ihop data och skapa payload
+merged_df = pd.DataFrame({'prod_kwh': production_df['production_kwh']}).join(
+    (prices_df['price_eur_per_mwh'] * 11.5 / 1000).to_frame('sek_per_kwh'), 
+    how='left'
+)
+payload = build_storytelling_payload(merged_df, 'SEK', 11.5, granularity)
 ```
 
-## Project Structure
+## Projektstruktur
 
 ```
 negative-price-calc/
-├── core/                     # Core business logic
-│   ├── price_fetcher.py      # ENTSO-E API integration
-│   ├── production_loader.py  # CSV production data loader
-│   ├── price_analyzer.py     # Analysis engine
-│   └── db_manager.py         # SQLite database management
-├── utils/                    # Utility modules
-│   ├── csv_format_detector_fallback.py  # Traditional CSV detection
-│   ├── csv_format_module.py             # LLM-powered CSV detection
-│   └── ai_explainer.py                  # AI analysis explanation
-├── data/                     # Data directory
-│   ├── price_data.db         # SQLite database (auto-created)
-│   └── cache/               # Temporary cache directory
-├── main.py                   # CLI entry point
-├── pyproject.toml           # Project configuration
-└── .env.example             # Environment template
+├── core/                           # Kärnlogik
+│   ├── price_fetcher.py           # ENTSO-E API integration
+│   ├── production_loader.py       # CSV produktionsdata loader
+│   ├── price_analyzer.py          # Analysmotor
+│   ├── db_manager.py              # SQLite databashantering
+│   └── negative_price_analysis.py  # Negativ prisanalys
+├── cli/                            # Kommandoradsinterface
+│   └── main.py                    # Modern se-cli entrypoint
+├── utils/                          # Utility-moduler
+│   ├── csv_format_detector_fallback.py  # Traditionell CSV detection
+│   ├── csv_format_module.py             # LLM-driven CSV detection
+│   ├── ai_explainer.py                  # AI-analysförklaringar
+│   └── ai_table_reader.py               # AI-tabellläsning
+├── templates/                      # HTML-mallar för webbapp
+│   └── index.html                 # Huvudsida för webapp
+├── data/                          # Datakatalog
+│   ├── price_data.db             # SQLite databas (auto-skapad)
+│   ├── cache/                    # Temporär cache
+│   └── samples/                  # Exempelfiler
+├── app.py                         # Flask webbapplikation
+├── run_webapp.py                  # Webapp launcher
+├── main.py                        # Legacy CLI (fasas ut)
+├── pyproject.toml                # Projektkonfiguration
+└── .env.example                  # Environment template
 ```
 
-## Dependencies
+## Beroenden
 
-- **pandas>=2.0.0**: Data manipulation and analysis
-- **numpy>=1.24.0**: Numerical computing
-- **requests>=2.31.0**: HTTP requests for API calls
-- **python-dotenv>=1.0.0**: Environment variable management
-- **openai>=1.0.0**: AI-powered features
-- **chardet>=5.0.0**: Character encoding detection
+- **pandas>=2.0.0**: Datamanipulation och analys
+- **numpy>=1.24.0**: Numeriska beräkningar
+- **requests>=2.31.0**: HTTP-anrop för API:er
+- **python-dotenv>=1.0.0**: Environment variable hantering
+- **openai>=1.0.0**: AI-funktioner
+- **chardet>=5.0.0**: Teckenkodnings-detection
+- **entsoe-py>=0.6.9**: ENTSO-E API-klient
+- **openpyxl>=3.1.2**: Excel-filhantering
+- **flask>=3.0.0**: Webbapplikationsramverk
 
-## Development
+## Utveckling
 
-Install development dependencies:
+Installera utvecklingsberoenden:
 
 ```bash
 uv sync --dev
 ```
 
-Run code formatting:
+Kör kodformattering:
 
 ```bash
 uv run black .
 uv run isort .
 ```
 
-Run linting:
+Kör linting:
 
 ```bash
 uv run flake8
 ```
 
-Run tests:
+Kör tester:
 
 ```bash
 uv run pytest
 ```
 
-## Area Codes
+Starta development server:
 
-Common electricity area codes for Nordic countries:
+```bash
+# Webbapplikation
+uv run python run_webapp.py
 
-- **SE_1**: Northern Sweden (Luleå)
-- **SE_2**: Central Sweden (Sundsvall)  
-- **SE_3**: Central Sweden (Stockholm)
-- **SE_4**: Southern Sweden (Malmö)
-- **NO_1**: Eastern Norway (Oslo)
-- **NO_2**: Southern Norway (Kristiansand)
-- **DK_1**: Western Denmark (Jutland)
-- **DK_2**: Eastern Denmark (Copenhagen)
+# Eller direkt via CLI
+uv run se-cli analyze --help
+```
 
-## Data Sources
+## Områdeskoder
 
-- **Price Data**: ENTSO-E Transparency Platform API
-- **Production Data**: CSV files from solar monitoring systems
-- **AI Features**: OpenAI GPT models for explanations
+Vanliga elområdeskoder för nordiska länder:
 
-## License
+- **SE_1**: Norra Sverige (Luleå)
+- **SE_2**: Mellersta Sverige (Sundsvall)  
+- **SE_3**: Mellersta Sverige (Stockholm)
+- **SE_4**: Södra Sverige (Malmö)
+- **NO_1**: Östra Norge (Oslo)
+- **NO_2**: Södra Norge (Kristiansand)
+- **DK_1**: Västra Danmark (Jylland)
+- **DK_2**: Östra Danmark (Köpenhamn)
 
-This project is licensed under the MIT License.
+## Datakällor
+
+- **Prisdata**: ENTSO-E Transparency Platform API
+- **Produktionsdata**: CSV-filer från solcellsövervakningssystem
+- **AI-funktioner**: OpenAI GPT-modeller för förklaringar
+- **Cache**: Lokal SQLite-databas för prishistorik
+
+## Licens
+
+Detta projekt är licensierat under MIT License.
 
 ## Support
 
-For questions or issues, please open an issue on the repository.
+För frågor eller problem, öppna en issue i repository:et.
+
+## Changelog
+
+- **v0.1.1**: Webbgränssnitt, AI-förklaringar, batterisimulering
+- **v0.1.0**: Grundläggande CLI och prisanalys
