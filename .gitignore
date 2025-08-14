@@ -9,4 +9,21 @@ wheels/
 # Virtual environments
 .venv
 .env
+
+# System files
 .DS_Store
+.python-version
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Cache directories
+.cache/
+*.log
+
+# Claude Code specific
+.claude/
