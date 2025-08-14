@@ -19,7 +19,7 @@ Detta projekt använder [uv](https://docs.astral.sh/uv/) för dependency managem
 
 ```bash
 # Klona repository
-git clone <repository-url>
+git clone https://github.com/srcfl/negative-price-calc.git
 cd negative-price-calc
 
 # Installera dependencies
@@ -233,7 +233,7 @@ Detta projekt är licensierat under MIT License.
 
 ## Support
 
-För frågor eller problem, öppna en issue i repository:et.
+För frågor eller problem, öppna en issue på [GitHub](https://github.com/srcfl/negative-price-calc/issues).
 
 ## Changelog
 
