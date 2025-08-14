@@ -170,6 +170,28 @@ negative-price-calc/
 - **openpyxl>=3.1.2**: Excel-filhantering
 - **flask>=3.0.0**: Webbapplikationsramverk
 
+## Docker Deployment
+
+För enkel deployment med Docker:
+
+```bash
+# Kopiera environment template och konfigurera API-nycklar
+cp .env.example .env
+# Redigera .env med dina ENTSOE_API_KEY och OPENAI_API_KEY
+
+# Bygg och starta applikationen
+docker-compose up --build
+
+# Öppna sedan din webbläsare på: http://localhost:8080
+```
+
+Docker-containern:
+- **🐳 Automatisk setup** med alla dependencies
+- **💾 Persistent data** via volumes för databas och cache
+- **🔄 Health checks** för tillgänglighet
+- **🔒 Säker konfiguration** via environment variabler
+- **📱 Produktionsredo** för deployment
+
 ## Utveckling
 
 Installera utvecklingsberoenden:

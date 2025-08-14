@@ -45,6 +45,9 @@ uv run python run_webapp.py
 
 # Web application (alternative)
 uv run python app.py
+
+# Docker deployment
+docker-compose up --build
 ```
 
 ## Architecture Overview
