@@ -601,9 +601,114 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: var(--space-8) 0;
-            margin-bottom: var(--space-16);
+            padding: var(--space-6) 0;
+            margin-bottom: 0;
             border-bottom: 1px solid var(--border);
+        }
+        
+        .header-logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Logo theme switching */
+        .logo-light {
+            display: block;
+        }
+        
+        .logo-dark {
+            display: none;
+        }
+        
+        [data-theme="dark"] .logo-light {
+            display: none;
+        }
+        
+        [data-theme="dark"] .logo-dark {
+            display: block;
+        }
+        
+        /* Hero Section */
+        .hero-section {
+            padding: var(--space-8) 0;
+            margin-bottom: var(--space-8);
+            text-align: left;
+        }
+        
+        /* Sourceful Logo */
+        .sourceful-logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .logo-circle {
+            width: 48px;
+            height: 48px;
+            background: var(--foreground);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .lightning-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .logo-sourceful {
+            font-family: var(--font-heading);
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            line-height: 1;
+        }
+        
+        .logo-energy {
+            font-family: var(--font-heading);
+            font-size: var(--text-2xl);
+            font-weight: var(--font-normal);
+            line-height: 1;
+            color: var(--muted-foreground);
+        }
+        
+        /* Logo Colors - Light Mode */
+        .logo-sourceful {
+            color: var(--foreground);
+        }
+        
+        /* Support browsers that support background-clip */
+        @supports (background-clip: text) or (-webkit-background-clip: text) {
+            .logo-sourceful {
+                background: linear-gradient(135deg, var(--foreground) 0%, var(--primary) 100%);
+                background-clip: text;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+        }
+        
+        /* Dark Mode Logo Colors */
+        [data-theme="dark"] .logo-sourceful {
+            color: white;
+            background: none;
+            -webkit-text-fill-color: white;
+        }
+        
+        [data-theme="dark"] .logo-energy {
+            color: var(--muted-foreground);
         }
         
         .header-brand {
@@ -612,33 +717,7 @@
             gap: var(--space-3);
         }
         
-        .header-logo {
-            width: 48px;
-            height: 48px;
-            background: #000000;
-            border-radius: var(--radius-full);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header-logo svg {
-            width: 28px;
-            height: 28px;
-        }
-        
-        .header-logo::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #000000;
-            border-radius: var(--radius-full);
-        }
+        /* Removed conflicting CSS for .header-logo to allow PNG logos to display */
         
         .header-title {
             display: flex;
@@ -1294,16 +1373,15 @@
 <body>
     <div class="container">
         <header class="header">
-            <div class="header-brand">
-                <div class="header-logo">
-                    <svg viewBox="0 0 100 100" style="position: relative; z-index: 1;">
-                        <path d="M30 20 L70 50 L45 50 L70 80 L30 50 L55 50 Z" fill="#00FF84"/>
-                    </svg>
-                </div>
-                <div class="header-title">
-                    <h1 data-i18n="title">Negativa Prisanalyseraren</h1>
-                    <p class="subtitle" data-i18n="subtitle">Upptäck när din export kostar dig pengar</p>
-                </div>
+            <div class="header-logo">
+                <img src="/static/images/Sourceful-wide-dark.png" 
+                     alt="Sourceful Energy" 
+                     class="logo-light" 
+                     style="height: 40px; width: auto;">
+                <img src="/static/images/Sourceful-wide-green-gradient.png" 
+                     alt="Sourceful Energy" 
+                     class="logo-dark" 
+                     style="height: 40px; width: auto;">
             </div>
             <div class="header-controls">
                 <div class="controls-group">
@@ -1317,6 +1395,13 @@
                 </div>
             </div>
         </header>
+
+        <div class="hero-section">
+            <div class="header-title">
+                <h1 data-i18n="title">Negative Price Analyzer</h1>
+                <p class="subtitle" data-i18n="subtitle">Discover when your export costs you money</p>
+            </div>
+        </div>
 
         <div class="card section">
             <form id="analysisForm">
