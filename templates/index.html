@@ -1590,6 +1590,8 @@
             // Show loading state
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span><span data-i18n="analyzing">Analyserar...</span>';
+            // Apply current language translation to loading state
+            translatePage(currentLanguage);
             resultsSection.style.display = 'none';
             
             // Clear previous results
@@ -1635,6 +1637,8 @@
                 // Reset button
                 btn.disabled = false;
                 btn.innerHTML = '<span data-i18n="analyze_button">Analysera med AI-sammanfattning</span>';
+                // Re-apply current language translations to the reset button
+                translatePage(currentLanguage);
             }
         });
 
