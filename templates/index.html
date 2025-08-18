@@ -1373,7 +1373,7 @@
     <script>
         // File input handling
         const fileInput = document.getElementById('production_file');
-        const fileInputArea = document.querySelector('.file-input');
+        const fileInputArea = document.querySelector('.file-upload');
         const selectedFileDiv = document.getElementById('selectedFile');
         
         function handleFileSelect(file) {
@@ -1396,7 +1396,8 @@
         });
         
         // Drag and drop functionality
-        fileInputArea.addEventListener('dragenter', function(e) {
+        if (fileInputArea) {
+            fileInputArea.addEventListener('dragenter', function(e) {
             e.preventDefault();
             e.stopPropagation();
             this.classList.add('drag-over');
@@ -1463,6 +1464,7 @@
                 },
                 { timeout: 5000, maximumAge: 300000 } // 5 second timeout, cache for 5 minutes
             );
+        }
         }
 
         // Form submission
