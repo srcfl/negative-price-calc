@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Negativa Prisanalyseraren</title>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         /* Import custom fonts */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -322,7 +323,7 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: var(--space-8) var(--space-6);
+            padding: var(--space-6) var(--space-6);
             min-height: 100vh;
         }
         
@@ -409,6 +410,7 @@
         
         .form-label {
             display: block;
+            margin-top: var(--space-6);
             margin-bottom: var(--space-2);
             font-family: var(--font-body);
             font-size: var(--text-sm);
@@ -416,6 +418,10 @@
             color: var(--foreground);
             text-transform: uppercase;
             letter-spacing: 0.05em;
+        }
+        
+        .form-group:first-child .form-label {
+            margin-top: 0;
         }
         
         .form-input {
@@ -486,6 +492,18 @@
         
         .file-upload input {
             display: none;
+        }
+        
+        .upload-icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: var(--space-3);
+        }
+        
+        .upload-icon i {
+            width: 32px;
+            height: 32px;
+            color: var(--primary);
         }
         
         /* Card Components */
@@ -601,7 +619,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: var(--space-6) 0;
+            padding: 0 0 var(--space-6) 0;
             margin-bottom: 0;
             border-bottom: 1px solid var(--border);
         }
@@ -630,8 +648,8 @@
         
         /* Hero Section */
         .hero-section {
-            padding: var(--space-8) 0;
-            margin-bottom: var(--space-8);
+            padding: var(--space-6) 0;
+            margin-bottom: var(--space-6);
             text-align: left;
         }
         
@@ -732,6 +750,7 @@
             color: var(--foreground);
             margin: 0;
             line-height: 1.1;
+            letter-spacing: -0.03em;
         }
         
         .header-title .subtitle {
@@ -776,6 +795,11 @@
         }
         
         .lang-btn.active {
+            background-color: #000000;
+            color: var(--primary);
+        }
+        
+        [data-theme="dark"] .lang-btn.active {
             background-color: var(--primary);
             color: var(--background);
         }
@@ -1409,7 +1433,10 @@
                     <label for="production_file" class="form-label" data-i18n="production_file_label">Produktionsdata (CSV eller Excel)</label>
                     <div class="file-upload" onclick="document.getElementById('production_file').click()">
                         <input type="file" id="production_file" name="production_file" accept=".csv,.xlsx,.xls" required>
-                        <p class="text-base font-medium" data-i18n="file_click_instruction">📁 Klicka för att välja din produktionsfil</p>
+                        <div class="upload-icon">
+                            <i data-lucide="cloud-upload"></i>
+                        </div>
+                        <p class="text-base font-medium" data-i18n="file_click_instruction">Klicka för att välja din produktionsfil</p>
                         <div class="text-sm text-muted-foreground mt-2" data-i18n="file_drag_instruction">Eller dra och släpp din CSV/Excel-fil här</div>
                         <div class="selected-file text-sm font-medium text-primary mt-3" id="selectedFile"></div>
                     </div>
@@ -1437,7 +1464,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn" style="width: 100%;">
+                <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn" style="width: 100%; margin-top: var(--space-6);">
                     <span data-i18n="analyze_button">Analysera med AI-sammanfattning</span>
                 </button>
             </form>
@@ -2002,7 +2029,7 @@
                 title: "Negativa Prisanalyseraren",
                 subtitle: "Upptäck när din export kostar dig pengar",
                 production_file_label: "Produktionsdata (CSV eller Excel)",
-                file_click_instruction: "📁 Klicka för att välja din produktionsfil",
+                file_click_instruction: "Klicka för att välja din produktionsfil",
                 file_drag_instruction: "Eller dra och släpp din CSV/Excel-fil här",
                 area_label: "Svenskt elområde",
                 area_se1: "SE_1 - Norra Sverige (Luleå)",
@@ -2048,16 +2075,16 @@
             },
             en: {
                 title: "Negative Price Analyzer",
-                subtitle: "Discover when your export costs you money",
+                subtitle: "Discover when your solar export costs you money",
                 production_file_label: "Production Data (CSV or Excel)",
-                file_click_instruction: "📁 Click to select your production file",
+                file_click_instruction: "Click to select your production file",
                 file_drag_instruction: "Or drag and drop your CSV/Excel file here",
                 area_label: "Swedish Electricity Area",
                 area_se1: "SE_1 - Northern Sweden (Luleå)",
                 area_se2: "SE_2 - Central Sweden (Sundsvall)",
                 area_se3: "SE_3 - Central Sweden (Stockholm)",
                 area_se4: "SE_4 - Southern Sweden (Malmö)",
-                email_label: "Your email address (required for AI analysis)",
+                email_label: "Your email address",
                 email_placeholder: "your.email@example.com",
                 email_disclaimer: "We use your email to save the analysis for you. No spam or ads.",
                 analyze_button: "Analyze with AI Summary",
@@ -2196,6 +2223,9 @@
         
         // Initialize theme and language functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Lucide icons
+            lucide.createIcons();
+            
             // Set up theme toggle
             const themeToggle = document.getElementById('themeToggle');
             if (themeToggle) {
