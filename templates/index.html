@@ -5,144 +5,743 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Negativa Prisanalyseraren</title>
     <style>
+        /* Import custom fonts */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
-        :root {
-            /* Sourceful Brand Colors */
-            --pencil-grey: #2B2B2B;
-            --air-force-blue: #2F4A66;
-            --surfie-green: #017E7A;
-            --energetic-teal: #00FF84;
-            
-            /* Extended Palette */
-            --light-grey: #F8F9FA;
-            --medium-grey: #E9ECEF;
-            --dark-grey: #495057;
-            --warning-red: #DC3545;
-            --warning-orange: #FD7E14;
-            --success-green: #28A745;
-            
-            /* High Contrast Text Colors */
-            --text-on-teal: #FFFFFF;
-            --text-on-red: #FFFFFF;
-            --text-on-gradient: #FFFFFF;
-            --text-primary: #1A1A1A;
-            --text-secondary: #495057;
-            --text-muted: #6C757D;
-            
-            /* Spacing System */
-            --spacing-xs: 4px;
-            --spacing-sm: 8px;
-            --spacing-md: 16px;
-            --spacing-lg: 24px;
-            --spacing-xl: 32px;
-            --spacing-2xl: 48px;
-            --spacing-3xl: 64px;
-            
-            /* Typography Scale */
-            --font-size-xs: 0.75rem;
-            --font-size-sm: 0.875rem;
-            --font-size-base: 1rem;
-            --font-size-lg: 1.125rem;
-            --font-size-xl: 1.25rem;
-            --font-size-2xl: 1.5rem;
-            --font-size-3xl: 2rem;
-            --font-size-4xl: 2.5rem;
-            --font-size-5xl: 3rem;
-            
-            /* Line Heights for Better Readability */
-            --line-height-tight: 1.25;
-            --line-height-normal: 1.6;
-            --line-height-relaxed: 1.8;
-            --line-height-loose: 2;
-            
-            /* Border Radius */
-            --radius-sm: 4px;
-            --radius-md: 8px;
-            --radius-lg: 16px;
-            --radius-xl: 24px;
-            
-            /* Shadows */
-            --shadow-sm: 0 1px 3px rgba(43, 43, 43, 0.12);
-            --shadow-md: 0 4px 6px rgba(43, 43, 43, 0.1);
-            --shadow-lg: 0 10px 15px rgba(43, 43, 43, 0.1);
-            --shadow-xl: 0 20px 25px rgba(43, 43, 43, 0.15);
+        /* PolySans Median for headings - fallback to system fonts if not available */
+        @font-face {
+            font-family: 'PolySans Median';
+            font-weight: 400;
+            font-display: swap;
+            /* Will be loaded from external source or fallback to Inter */
+        }
+        @font-face {
+            font-family: 'PolySans Median';
+            font-weight: 600;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'PolySans Median';
+            font-weight: 700;
+            font-display: swap;
         }
         
+        /* Satoshi for body text - fallback to Inter if not available */
+        @font-face {
+            font-family: 'Satoshi';
+            font-weight: 400;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Satoshi';
+            font-weight: 500;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Satoshi';
+            font-weight: 600;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Satoshi';
+            font-weight: 700;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Satoshi';
+            font-weight: 800;
+            font-display: swap;
+        }
+        
+        :root {
+            /* Design System Fonts */
+            --font-heading: 'PolySans Median', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-body: 'Satoshi', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            
+            /* Core Brand Colors */
+            --primary: #00FF84;
+            --primary-rgb: 0, 255, 132;
+            
+            /* Light Theme Colors */
+            --background: #ffffff;
+            --foreground: #000000;
+            --muted: #f8f9fa;
+            --muted-foreground: #6c757d;
+            --card: #ffffff;
+            --card-foreground: #000000;
+            --border: #e9ecef;
+            --input: #ffffff;
+            --input-border: #e9ecef;
+            --ring: rgba(0, 255, 132, 0.2);
+            
+            /* Button Colors - Light Theme */
+            --btn-primary: #000000;
+            --btn-primary-foreground: #00FF84;
+            --btn-primary-hover: #1a1a1a;
+            --btn-secondary: #f8f9fa;
+            --btn-secondary-foreground: #000000;
+            --btn-secondary-hover: #e9ecef;
+            
+            /* Semantic Colors */
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --info: #3b82f6;
+            
+            /* Chart Colors */
+            --chart-positive: #22c55e;
+            --chart-negative: #ef4444;
+            --chart-neutral: #6b7280;
+            --chart-primary: #00FF84;
+            --chart-secondary: #3b82f6;
+            
+            /* Spacing Scale */
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.25rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+            --space-10: 2.5rem;
+            --space-12: 3rem;
+            --space-16: 4rem;
+            --space-20: 5rem;
+            --space-24: 6rem;
+            
+            /* Typography Scale */
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.25rem;
+            --text-2xl: 1.5rem;
+            --text-3xl: 1.875rem;
+            --text-4xl: 2.25rem;
+            --text-5xl: 3rem;
+            --text-6xl: 3.75rem;
+            
+            /* Font Weights */
+            --font-normal: 400;
+            --font-medium: 500;
+            --font-semibold: 600;
+            --font-bold: 700;
+            --font-extrabold: 800;
+            
+            /* Border Radius */
+            --radius-sm: 0.375rem;
+            --radius: 0.5rem;
+            --radius-md: 0.75rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
+            --radius-full: 9999px;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --background: #000000;
+            --foreground: #ffffff;
+            --muted: #1a1a1a;
+            --muted-foreground: #a1a1aa;
+            --card: #0a0a0a;
+            --card-foreground: #ffffff;
+            --border: #262626;
+            --input: #0a0a0a;
+            --input-border: #262626;
+            --ring: rgba(0, 255, 132, 0.3);
+            
+            /* Button Colors - Dark Theme */
+            --btn-primary: #00FF84;
+            --btn-primary-foreground: #000000;
+            --btn-primary-hover: #00e876;
+            --btn-secondary: #1a1a1a;
+            --btn-secondary-foreground: #ffffff;
+            --btn-secondary-hover: #262626;
+            
+            /* Semantic Colors for Dark */
+            --success: #16a34a;
+            --warning: #d97706;
+            --error: #dc2626;
+            --info: #2563eb;
+        }
+        
+        /* Reset and Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            line-height: var(--line-height-normal);
-            color: var(--text-primary);
-            background: linear-gradient(135deg, #FFFFFF 0%, #F0F4F8 100%);
-            min-height: 100vh;
-            font-size: var(--font-size-base);
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+        html {
+            scroll-behavior: smooth;
         }
         
+        body {
+            font-family: var(--font-body);
+            font-size: var(--text-base);
+            font-weight: var(--font-medium);
+            line-height: 1.6;
+            color: var(--foreground);
+            background: var(--background);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+        
+        /* Typography Utilities */
+        .font-heading {
+            font-family: var(--font-heading);
+        }
+        
+        .font-body {
+            font-family: var(--font-body);
+        }
+        
+        /* Text Sizes */
+        .text-xs { font-size: var(--text-xs); }
+        .text-sm { font-size: var(--text-sm); }
+        .text-base { font-size: var(--text-base); }
+        .text-lg { font-size: var(--text-lg); }
+        .text-xl { font-size: var(--text-xl); }
+        .text-2xl { font-size: var(--text-2xl); }
+        .text-3xl { font-size: var(--text-3xl); }
+        .text-4xl { font-size: var(--text-4xl); }
+        .text-5xl { font-size: var(--text-5xl); }
+        .text-6xl { font-size: var(--text-6xl); }
+        
+        /* Font Weights */
+        .font-normal { font-weight: var(--font-normal); }
+        .font-medium { font-weight: var(--font-medium); }
+        .font-semibold { font-weight: var(--font-semibold); }
+        .font-bold { font-weight: var(--font-bold); }
+        .font-extrabold { font-weight: var(--font-extrabold); }
+        
+        /* Text Colors */
+        .text-foreground { color: var(--foreground); }
+        .text-muted-foreground { color: var(--muted-foreground); }
+        .text-primary { color: var(--primary); }
+        .text-success { color: var(--success); }
+        .text-warning { color: var(--warning); }
+        .text-error { color: var(--error); }
+        
+        /* Background Colors */
+        .bg-background { background-color: var(--background); }
+        .bg-muted { background-color: var(--muted); }
+        .bg-card { background-color: var(--card); }
+        .bg-primary { background-color: var(--primary); }
+        
+        /* Spacing Utilities */
+        .p-1 { padding: var(--space-1); }
+        .p-2 { padding: var(--space-2); }
+        .p-3 { padding: var(--space-3); }
+        .p-4 { padding: var(--space-4); }
+        .p-5 { padding: var(--space-5); }
+        .p-6 { padding: var(--space-6); }
+        .p-8 { padding: var(--space-8); }
+        .p-10 { padding: var(--space-10); }
+        .p-12 { padding: var(--space-12); }
+        .p-16 { padding: var(--space-16); }
+        .p-20 { padding: var(--space-20); }
+        .p-24 { padding: var(--space-24); }
+        
+        .px-1 { padding-left: var(--space-1); padding-right: var(--space-1); }
+        .px-2 { padding-left: var(--space-2); padding-right: var(--space-2); }
+        .px-3 { padding-left: var(--space-3); padding-right: var(--space-3); }
+        .px-4 { padding-left: var(--space-4); padding-right: var(--space-4); }
+        .px-5 { padding-left: var(--space-5); padding-right: var(--space-5); }
+        .px-6 { padding-left: var(--space-6); padding-right: var(--space-6); }
+        .px-8 { padding-left: var(--space-8); padding-right: var(--space-8); }
+        
+        .py-1 { padding-top: var(--space-1); padding-bottom: var(--space-1); }
+        .py-2 { padding-top: var(--space-2); padding-bottom: var(--space-2); }
+        .py-3 { padding-top: var(--space-3); padding-bottom: var(--space-3); }
+        .py-4 { padding-top: var(--space-4); padding-bottom: var(--space-4); }
+        .py-5 { padding-top: var(--space-5); padding-bottom: var(--space-5); }
+        .py-6 { padding-top: var(--space-6); padding-bottom: var(--space-6); }
+        .py-8 { padding-top: var(--space-8); padding-bottom: var(--space-8); }
+        
+        .m-1 { margin: var(--space-1); }
+        .m-2 { margin: var(--space-2); }
+        .m-3 { margin: var(--space-3); }
+        .m-4 { margin: var(--space-4); }
+        .m-5 { margin: var(--space-5); }
+        .m-6 { margin: var(--space-6); }
+        .m-8 { margin: var(--space-8); }
+        .m-10 { margin: var(--space-10); }
+        .m-12 { margin: var(--space-12); }
+        
+        .mb-1 { margin-bottom: var(--space-1); }
+        .mb-2 { margin-bottom: var(--space-2); }
+        .mb-3 { margin-bottom: var(--space-3); }
+        .mb-4 { margin-bottom: var(--space-4); }
+        .mb-5 { margin-bottom: var(--space-5); }
+        .mb-6 { margin-bottom: var(--space-6); }
+        .mb-8 { margin-bottom: var(--space-8); }
+        .mb-10 { margin-bottom: var(--space-10); }
+        .mb-12 { margin-bottom: var(--space-12); }
+        .mb-16 { margin-bottom: var(--space-16); }
+        .mb-20 { margin-bottom: var(--space-20); }
+        .mb-24 { margin-bottom: var(--space-24); }
+        
+        .mt-1 { margin-top: var(--space-1); }
+        .mt-2 { margin-top: var(--space-2); }
+        .mt-3 { margin-top: var(--space-3); }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-5 { margin-top: var(--space-5); }
+        .mt-6 { margin-top: var(--space-6); }
+        .mt-8 { margin-top: var(--space-8); }
+        .mt-10 { margin-top: var(--space-10); }
+        .mt-12 { margin-top: var(--space-12); }
+        
+        /* Border Radius */
+        .rounded-sm { border-radius: var(--radius-sm); }
+        .rounded { border-radius: var(--radius); }
+        .rounded-md { border-radius: var(--radius-md); }
+        .rounded-lg { border-radius: var(--radius-lg); }
+        .rounded-xl { border-radius: var(--radius-xl); }
+        .rounded-2xl { border-radius: var(--radius-2xl); }
+        .rounded-full { border-radius: var(--radius-full); }
+        
+        /* Shadows */
+        .shadow-sm { box-shadow: var(--shadow-sm); }
+        .shadow { box-shadow: var(--shadow); }
+        .shadow-md { box-shadow: var(--shadow-md); }
+        .shadow-lg { box-shadow: var(--shadow-lg); }
+        .shadow-xl { box-shadow: var(--shadow-xl); }
+        
+        /* Layout Components */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: var(--spacing-lg);
+            padding: var(--space-8) var(--space-6);
+            min-height: 100vh;
         }
         
-        .header {
-            background: linear-gradient(135deg, var(--air-force-blue) 0%, var(--surfie-green) 100%);
-            padding: var(--spacing-2xl);
+        /* Section Spacing */
+        .section {
+            margin-bottom: var(--space-16);
+        }
+        
+        .section:last-child {
+            margin-bottom: var(--space-24);
+        }
+        
+        /* Button Components */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-6);
+            font-family: var(--font-body);
+            font-size: var(--text-base);
+            font-weight: var(--font-semibold);
+            line-height: 1;
+            border: none;
             border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            margin-bottom: var(--spacing-xl);
-            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+            outline: none;
             position: relative;
             overflow: hidden;
         }
         
-        .header::before {
+        .btn:focus-visible {
+            outline: 2px solid var(--ring);
+            outline-offset: 2px;
+        }
+        
+        .btn:disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        
+        .btn-primary {
+            background-color: var(--btn-primary);
+            color: var(--btn-primary-foreground);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--btn-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-secondary {
+            background-color: var(--btn-secondary);
+            color: var(--btn-secondary-foreground);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background-color: var(--btn-secondary-hover);
+        }
+        
+        .btn-lg {
+            padding: var(--space-4) var(--space-8);
+            font-size: var(--text-lg);
+        }
+        
+        .btn-sm {
+            padding: var(--space-2) var(--space-4);
+            font-size: var(--text-sm);
+        }
+        
+        /* Form Components */
+        .form-group {
+            margin-bottom: var(--space-8);
+        }
+        
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--space-2);
+            font-family: var(--font-body);
+            font-size: var(--text-sm);
+            font-weight: var(--font-semibold);
+            color: var(--foreground);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-body);
+            font-size: var(--text-base);
+            background-color: var(--input);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius);
+            color: var(--foreground);
+            transition: all 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--ring);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-body);
+            font-size: var(--text-base);
+            background-color: var(--input);
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius);
+            color: var(--foreground);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--ring);
+        }
+        
+        /* File Upload Component */
+        .file-upload {
+            width: 100%;
+            min-height: 120px;
+            padding: var(--space-8);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            background-color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary);
+            background-color: var(--card);
+        }
+        
+        .file-upload.drag-over {
+            border-color: var(--primary);
+            background-color: rgba(var(--primary-rgb), 0.05);
+            transform: scale(1.02);
+        }
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        /* Card Components */
+        .card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-8);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        
+        .metric-card {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .metric-card::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, var(--energetic-teal) 0%, transparent 70%);
-            opacity: 0.2;
-            animation: pulse 4s ease-in-out infinite;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
         }
         
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.2; }
-            50% { transform: scale(1.1); opacity: 0.3; }
+        .metric-value {
+            font-family: var(--font-heading);
+            font-size: var(--text-3xl);
+            font-weight: var(--font-extrabold);
+            color: var(--foreground);
+            margin-bottom: var(--space-2);
+            line-height: 1.1;
         }
         
-        h1 {
-            color: white;
-            margin-bottom: var(--spacing-sm);
-            font-size: 3rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .metric-label {
+            font-family: var(--font-body);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            color: var(--muted-foreground);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Theme Toggle Component */
+        .theme-toggle {
+            display: flex;
+            gap: var(--space-1);
+            background-color: var(--muted);
+            border-radius: var(--radius-full);
+            padding: var(--space-1);
+        }
+        
+        .theme-toggle button {
+            padding: var(--space-2) var(--space-3);
+            border: none;
+            border-radius: var(--radius-full);
+            background: transparent;
+            color: var(--muted-foreground);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-toggle button.active {
+            background-color: var(--background);
+            color: var(--foreground);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* Additional Utility Classes */
+        .w-full { width: 100%; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-center { justify-content: center; }
+        .gap-2 { gap: var(--space-2); }
+        .gap-3 { gap: var(--space-3); }
+        .gap-4 { gap: var(--space-4); }
+        
+        /* Loading State */
+        .btn .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Header Component */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-8) 0;
+            margin-bottom: var(--space-16);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .header-logo {
+            width: 48px;
+            height: 48px;
+            background: #000000;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
-            z-index: 1;
+            overflow: hidden;
         }
         
+        .header-logo svg {
+            width: 28px;
+            height: 28px;
+        }
+        
+        .header-logo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000000;
+            border-radius: var(--radius-full);
+        }
+        
+        .header-title {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+        }
+        
+        .header-title h1 {
+            font-family: var(--font-heading);
+            font-size: var(--text-4xl);
+            font-weight: var(--font-bold);
+            color: var(--foreground);
+            margin: 0;
+            line-height: 1.1;
+        }
+        
+        .header-title .subtitle {
+            font-family: var(--font-body);
+            font-size: var(--text-lg);
+            font-weight: var(--font-medium);
+            color: var(--muted-foreground);
+            margin: 0;
+        }
+        
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        /* Language and Theme Controls */
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            background-color: var(--muted);
+            border-radius: var(--radius-lg);
+            padding: var(--space-2);
+        }
+        
+        .lang-selector {
+            display: flex;
+            gap: var(--space-1);
+        }
+        
+        .lang-btn {
+            padding: var(--space-2) var(--space-3);
+            border: none;
+            border-radius: var(--radius);
+            background: transparent;
+            color: var(--muted-foreground);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .lang-btn.active {
+            background-color: var(--primary);
+            color: var(--background);
+        }
+        
+        .theme-toggle-btn {
+            padding: var(--space-2);
+            border: none;
+            border-radius: var(--radius);
+            background: transparent;
+            color: var(--muted-foreground);
+            font-size: var(--text-lg);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .theme-toggle-btn:hover {
+            background-color: var(--card);
+            color: var(--foreground);
+        }
+        
+        /* Mobile Header */
         @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-        }
-        
-        .subtitle {
-            color: var(--energetic-teal);
-            font-size: 1.25rem;
-            font-weight: 500;
-            margin-bottom: 0;
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            .header {
+                flex-direction: column;
+                gap: var(--space-4);
+                align-items: flex-start;
+            }
+            
+            .header-brand {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .header-title h1 {
+                font-size: var(--text-3xl);
+                text-align: center;
+            }
+            
+            .header-controls {
+                width: 100%;
+                justify-content: center;
+            }
         }
         
         .upload-section {
@@ -694,26 +1293,46 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1 data-i18n="title">Negativa Prisanalyseraren</h1>
-            <p class="subtitle" data-i18n="subtitle">Upptäck när din export kostar dig pengar</p>
-        </div>
+        <header class="header">
+            <div class="header-brand">
+                <div class="header-logo">
+                    <svg viewBox="0 0 100 100" style="position: relative; z-index: 1;">
+                        <path d="M30 20 L70 50 L45 50 L70 80 L30 50 L55 50 Z" fill="#00FF84"/>
+                    </svg>
+                </div>
+                <div class="header-title">
+                    <h1 data-i18n="title">Negativa Prisanalyseraren</h1>
+                    <p class="subtitle" data-i18n="subtitle">Upptäck när din export kostar dig pengar</p>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div class="controls-group">
+                    <div class="lang-selector">
+                        <button id="langSv" class="lang-btn active" data-lang="sv">🇸🇪 SV</button>
+                        <button id="langEn" class="lang-btn" data-lang="en">🇬🇧 EN</button>
+                    </div>
+                    <button id="themeToggle" class="theme-toggle-btn" title="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </div>
+        </header>
 
-        <div class="upload-section">
+        <div class="card section">
             <form id="analysisForm">
                 <div class="form-group">
-                    <label for="production_file" data-i18n="production_file_label">Produktionsdata (CSV eller Excel)</label>
-                    <div class="file-input" onclick="document.getElementById('production_file').click()">
+                    <label for="production_file" class="form-label" data-i18n="production_file_label">Produktionsdata (CSV eller Excel)</label>
+                    <div class="file-upload" onclick="document.getElementById('production_file').click()">
                         <input type="file" id="production_file" name="production_file" accept=".csv,.xlsx,.xls" required>
-                        <p data-i18n="file_click_instruction">📁 Klicka för att välja din produktionsfil</p>
-                        <div class="drag-instruction" data-i18n="file_drag_instruction">Eller dra och släpp din CSV/Excel-fil här</div>
-                        <div class="selected-file" id="selectedFile"></div>
+                        <p class="text-base font-medium" data-i18n="file_click_instruction">📁 Klicka för att välja din produktionsfil</p>
+                        <div class="text-sm text-muted-foreground mt-2" data-i18n="file_drag_instruction">Eller dra och släpp din CSV/Excel-fil här</div>
+                        <div class="selected-file text-sm font-medium text-primary mt-3" id="selectedFile"></div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="area" data-i18n="area_label">Svenskt elområde</label>
-                    <select id="area" name="area" required>
+                    <label for="area" class="form-label" data-i18n="area_label">Svenskt elområde</label>
+                    <select id="area" name="area" class="form-select" required>
                         <option value="SE_1" data-i18n="area_se1">SE_1 - Norra Sverige (Luleå)</option>
                         <option value="SE_2" data-i18n="area_se2">SE_2 - Mellersta Sverige (Sundsvall)</option>
                         <option value="SE_3" data-i18n="area_se3">SE_3 - Mellersta Sverige (Stockholm)</option>
@@ -725,25 +1344,24 @@
 
                 <!-- Email input for lead capture -->
                 <div class="form-group">
-                    <label for="userEmailUpfront" data-i18n="email_label">Din e-postadress (krävs för AI-analys)</label>
-                    <input type="email" id="userEmailUpfront" name="email" required 
-                           placeholder="din.epost@exempel.se"
-                           style="width: 100%; padding: 12px 16px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; background: white;">
-                    <div style="font-size: 0.875rem; color: #6C757D; margin-top: 4px;">
+                    <label for="userEmailUpfront" class="form-label" data-i18n="email_label">Din e-postadress (krävs för AI-analys)</label>
+                    <input type="email" id="userEmailUpfront" name="email" class="form-input" required 
+                           placeholder="din.epost@exempel.se" data-i18n-placeholder="email_placeholder">
+                    <div class="text-sm text-muted-foreground mt-2">
                         <span data-i18n="email_disclaimer">Vi använder din e-post för att spara analysen åt dig. Inga spam eller reklam.</span>
                     </div>
                 </div>
 
-                <button type="submit" class="analyze-btn" id="analyzeBtn">
-                    <span style="position: relative; z-index: 1;" data-i18n="analyze_button">Analysera med AI-sammanfattning</span>
+                <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn" style="width: 100%;">
+                    <span data-i18n="analyze_button">Analysera med AI-sammanfattning</span>
                 </button>
             </form>
         </div>
 
 
-        <div class="results-section" id="resultsSection">
-            <div class="results-header">
-                <h2 data-i18n="results_title">📊 Analysresultat</h2>
+        <div class="results-section section" id="resultsSection">
+            <div class="results-header mb-8">
+                <h2 class="font-heading text-3xl font-bold mb-4" data-i18n="results_title">📊 Analysresultat</h2>
                 <div id="analysisMetadata"></div>
             </div>
             <div class="results-content" id="resultsContent">
@@ -857,7 +1475,7 @@
             
             // Show loading state
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span><span style="position: relative; z-index: 1;" data-i18n="analyzing">Analyserar...</span>';
+            btn.innerHTML = '<span class="spinner"></span><span data-i18n="analyzing">Analyserar...</span>';
             resultsSection.style.display = 'none';
             
             // Clear previous results
@@ -902,7 +1520,7 @@
             } finally {
                 // Reset button
                 btn.disabled = false;
-                btn.innerHTML = '<span style="position: relative; z-index: 1;" data-i18n="analyze_button">Analysera med AI-sammanfattning</span>';
+                btn.innerHTML = '<span data-i18n="analyze_button">Analysera med AI-sammanfattning</span>';
             }
         });
 
@@ -1449,17 +2067,11 @@
             // Update language button states
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.remove('active');
-                btn.style.background = 'white';
-                btn.style.color = '#495057';
-                btn.style.border = '1px solid #E9ECEF';
             });
             
             const activeBtn = document.querySelector(`[data-lang="${lang}"]`);
             if (activeBtn) {
                 activeBtn.classList.add('active');
-                activeBtn.style.background = '#017E7A';
-                activeBtn.style.color = 'white';
-                activeBtn.style.border = 'none';
             }
             
             // Store language preference
@@ -1471,11 +2083,52 @@
             }
         }
 
-        // Initialize language functionality
+        // Theme Management
+        let currentTheme = 'light';
+        
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Update theme toggle icon
+            const themeIcon = document.querySelector('.theme-icon');
+            if (themeIcon) {
+                themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            }
+            
+            // Store theme preference
+            localStorage.setItem('preferredTheme', theme);
+            
+            // Debug log
+            console.log('Theme set to:', theme);
+        }
+        
+        function toggleTheme() {
+            setTheme(currentTheme === 'light' ? 'dark' : 'light');
+        }
+        
+        // Initialize theme and language functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Set up theme toggle
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+            
+            // Load saved theme preference or default to light
+            const savedTheme = localStorage.getItem('preferredTheme') || 'light';
+            setTheme(savedTheme);
+            
             // Set up language switcher event listeners
-            document.getElementById('langSv').addEventListener('click', () => translatePage('sv'));
-            document.getElementById('langEn').addEventListener('click', () => translatePage('en'));
+            const langSvBtn = document.getElementById('langSv');
+            const langEnBtn = document.getElementById('langEn');
+            
+            if (langSvBtn) {
+                langSvBtn.addEventListener('click', () => translatePage('sv'));
+            }
+            if (langEnBtn) {
+                langEnBtn.addEventListener('click', () => translatePage('en'));
+            }
             
             // Load saved language preference or default to Swedish
             const savedLang = localStorage.getItem('preferredLanguage') || 'sv';
@@ -1487,14 +2140,7 @@
         POWERED BY SOURCEFUL
     </a>
     
-    <!-- Language Selector -->
-    <div id="languageSelector" style="position: fixed; bottom: 20px; left: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 8px; z-index: 1001; border: 1px solid #E9ECEF;">
-        <div style="display: flex; gap: 4px; align-items: center;">
-            <span style="font-size: 12px; color: #6C757D; margin-right: 8px;" data-i18n="language_label">Language:</span>
-            <button id="langSv" class="lang-btn active" data-lang="sv" style="padding: 4px 8px; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; background: #017E7A; color: white; font-weight: 500;">🇸🇪 SV</button>
-            <button id="langEn" class="lang-btn" data-lang="en" style="padding: 4px 8px; border: 1px solid #E9ECEF; border-radius: 4px; font-size: 12px; cursor: pointer; background: white; color: #495057; font-weight: 500;">🇬🇧 EN</button>
-        </div>
-    </div>
+
     
     <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #6C757D; text-align: center; pointer-events: none; z-index: 1000;">
         <span data-i18n="made_in">Made with ❤️ in Kalmar, Sweden</span>
