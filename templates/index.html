@@ -578,6 +578,168 @@
             color: #DC3545;
         }
         
+        /* Enhanced metric card with mini-graph */
+        .metric-card-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: var(--space-4);
+        }
+        
+        .metric-main {
+            flex: 1;
+        }
+        
+        .metric-mini-graph {
+            flex-shrink: 0;
+            width: 60px;
+            height: 32px;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+        
+        .metric-card:hover .metric-mini-graph {
+            opacity: 1;
+        }
+        
+        .mini-sparkline {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .sparkline-path {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 2;
+            transition: stroke 0.2s ease;
+        }
+        
+        .metric-card.negative-highlight .sparkline-path {
+            stroke: #DC3545;
+        }
+        
+        .metric-value.positive ~ .metric-mini-graph .sparkline-path {
+            stroke: var(--success);
+        }
+        
+        .metric-value.negative ~ .metric-mini-graph .sparkline-path {
+            stroke: #DC3545;
+        }
+        
+        /* Trend indicator */
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            margin-top: var(--space-1);
+            font-size: var(--text-xs);
+            color: var(--muted-foreground);
+        }
+        
+        .trend-icon {
+            width: 12px;
+            height: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .trend-up {
+            color: var(--success);
+        }
+        
+        .trend-down {
+            color: #DC3545;
+        }
+        
+        .trend-neutral {
+            color: var(--muted-foreground);
+        }
+        
+        /* Loading skeleton states */
+        .metric-card-skeleton {
+            background-color: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-6);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .metric-card-skeleton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--muted);
+        }
+        
+        .skeleton-animate {
+            background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+        
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .skeleton-value {
+            height: 32px;
+            width: 80%;
+            border-radius: var(--radius);
+            margin-bottom: var(--space-2);
+        }
+        
+        .skeleton-label {
+            height: 14px;
+            width: 60%;
+            border-radius: var(--radius);
+        }
+        
+        .skeleton-trend {
+            height: 12px;
+            width: 40%;
+            border-radius: var(--radius);
+            margin-top: var(--space-1);
+        }
+        
+        .skeleton-graph {
+            width: 60px;
+            height: 32px;
+            border-radius: var(--radius);
+        }
+        
+        /* Enhanced hover animations */
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+            pointer-events: none;
+        }
+        
+        .metric-card:hover::after {
+            left: 100%;
+        }
+        
+        [data-theme="dark"] .metric-card::after {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+        }
+        
         /* Results section components */
         .disclaimer-banner {
             background: #FFF3CD;
@@ -2093,26 +2255,45 @@
                 
                 
                 <div class="metric-grid">
-                    <div class="metric-card">
-                        <div class="metric-value">${(produktion.total_kwh || tekniska.production_kwh || 0).toFixed(1)} kWh</div>
-                        <div class="metric-label" data-i18n="total_production">Total produktion</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value ${(produktion.totala_intakter_sek || tekniska.revenue_sek || 0) >= 0 ? 'positive' : 'negative'}">${(produktion.totala_intakter_sek || tekniska.revenue_sek || 0).toFixed(2)} ${metadata.currency}</div>
-                        <div class="metric-label" data-i18n="total_revenue">Totala intäkter</div>
-                    </div>
-                    <div class="metric-card negative-highlight">
-                        <div class="metric-value negative">${(exportFörluster.andel_olönsam_export_pct || 0).toFixed(1)}%</div>
-                        <div class="metric-label" data-i18n="export_negative_prices">Export vid negativa priser</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${(produktion.genomsnittspris_erhållet_sek_per_kwh || tekniska.realized_price_wavg_sek_per_kwh || 0).toFixed(3)} ${metadata.currency}/kWh</div>
-                        <div class="metric-label" data-i18n="average_price_received">Genomsnittspris erhållet</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0) <= 0 ? 'negative' : 'positive'}">${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0).toFixed(1)}%</div>
-                        <div class="metric-label" data-i18n="timing_loss">Timing-förlust</div>
-                    </div>
+                    ${generateEnhancedMetricCard({
+                        value: (produktion.total_kwh || tekniska.production_kwh || 0).toFixed(1),
+                        unit: 'kWh',
+                        label: 'total_production',
+                        data: analysis.aggregates?.monthly?.map(m => m.production_kwh || 0) || [],
+                        type: 'production'
+                    })}
+                    ${generateEnhancedMetricCard({
+                        value: (produktion.totala_intakter_sek || tekniska.revenue_sek || 0).toFixed(2),
+                        unit: metadata.currency,
+                        label: 'total_revenue',
+                        data: analysis.aggregates?.monthly?.map(m => (m.revenue_sek || 0)) || [],
+                        type: 'revenue',
+                        colorClass: (produktion.totala_intakter_sek || tekniska.revenue_sek || 0) >= 0 ? 'positive' : 'negative'
+                    })}
+                    ${generateEnhancedMetricCard({
+                        value: (exportFörluster.andel_olönsam_export_pct || 0).toFixed(1),
+                        unit: '%',
+                        label: 'export_negative_prices',
+                        data: analysis.aggregates?.monthly?.map(m => m.non_positive_percent_hours || 0) || [],
+                        type: 'negative',
+                        colorClass: 'negative',
+                        cardClass: 'negative-highlight'
+                    })}
+                    ${generateEnhancedMetricCard({
+                        value: (produktion.genomsnittspris_erhållet_sek_per_kwh || tekniska.realized_price_wavg_sek_per_kwh || 0).toFixed(3),
+                        unit: `${metadata.currency}/kWh`,
+                        label: 'average_price_received',
+                        data: analysis.aggregates?.monthly?.map(m => (m.avg_price_sek_per_kwh || 0)) || [],
+                        type: 'price'
+                    })}
+                    ${generateEnhancedMetricCard({
+                        value: (produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0).toFixed(1),
+                        unit: '%',
+                        label: 'timing_loss',
+                        data: analysis.aggregates?.monthly?.map(m => (m.timing_loss_pct || 0)) || [],
+                        type: 'timing',
+                        colorClass: (produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0) <= 0 ? 'negative' : 'positive'
+                    })}
                 </div>
                 
                 <div class="explanations-container">
@@ -2195,6 +2376,93 @@
             document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
         }
 
+
+        function generateMiniSparkline(data, width = 60, height = 32) {
+            if (!data || data.length < 2) {
+                return '<div class="metric-mini-graph"></div>';
+            }
+            
+            const maxValue = Math.max(...data);
+            const minValue = Math.min(...data);
+            const range = maxValue - minValue || 1;
+            
+            // Generate SVG path
+            const points = data.map((value, index) => {
+                const x = (index / (data.length - 1)) * width;
+                const y = height - ((value - minValue) / range) * height;
+                return `${x},${y}`;
+            }).join(' L');
+            
+            return `
+                <div class="metric-mini-graph">
+                    <svg class="mini-sparkline" viewBox="0 0 ${width} ${height}">
+                        <path class="sparkline-path" d="M${points}" />
+                    </svg>
+                </div>
+            `;
+        }
+        
+        function calculateTrendIndicator(data) {
+            if (!data || data.length < 2) return { trend: 'neutral', change: 0 };
+            
+            const recent = data.slice(-3); // Last 3 points
+            const earlier = data.slice(0, 3); // First 3 points
+            
+            const recentAvg = recent.reduce((a, b) => a + b, 0) / recent.length;
+            const earlierAvg = earlier.reduce((a, b) => a + b, 0) / earlier.length;
+            
+            const change = ((recentAvg - earlierAvg) / earlierAvg) * 100;
+            
+            let trend = 'neutral';
+            if (Math.abs(change) > 5) { // 5% threshold
+                trend = change > 0 ? 'up' : 'down';
+            }
+            
+            return { trend, change: Math.abs(change) };
+        }
+        
+        function generateSkeletonMetricCard() {
+            return `
+                <div class="metric-card-skeleton">
+                    <div class="metric-card-content">
+                        <div class="metric-main">
+                            <div class="skeleton-value skeleton-animate"></div>
+                            <div class="skeleton-label skeleton-animate"></div>
+                            <div class="skeleton-trend skeleton-animate"></div>
+                        </div>
+                        <div class="skeleton-graph skeleton-animate"></div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function generateEnhancedMetricCard({ value, unit, label, data, type, colorClass = '', cardClass = '' }) {
+            const sparkline = generateMiniSparkline(data);
+            const trendInfo = calculateTrendIndicator(data);
+            
+            const trendIcon = trendInfo.trend === 'up' ? '↗' : 
+                             trendInfo.trend === 'down' ? '↘' : '→';
+            
+            const trendText = trendInfo.change > 0 ? `${trendInfo.change.toFixed(1)}%` : '';
+            
+            return `
+                <div class="metric-card ${cardClass}">
+                    <div class="metric-card-content">
+                        <div class="metric-main">
+                            <div class="metric-value ${colorClass}">${value} ${unit}</div>
+                            <div class="metric-label" data-i18n="${label}"></div>
+                            ${data && data.length > 2 ? `
+                                <div class="metric-trend">
+                                    <span class="trend-icon trend-${trendInfo.trend}">${trendIcon}</span>
+                                    <span class="trend-${trendInfo.trend}">${trendText}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        ${sparkline}
+                    </div>
+                </div>
+            `;
+        }
 
         function generateProductionChart(analysis) {
             const aggregates = analysis.aggregates;
