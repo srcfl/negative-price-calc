@@ -695,29 +695,29 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Negativa Prisanalyseraren</h1>
-            <p class="subtitle">Upptäck när din export kostar dig pengar</p>
+            <h1 data-i18n="title">Negativa Prisanalyseraren</h1>
+            <p class="subtitle" data-i18n="subtitle">Upptäck när din export kostar dig pengar</p>
         </div>
 
         <div class="upload-section">
             <form id="analysisForm">
                 <div class="form-group">
-                    <label for="production_file">Produktionsdata (CSV eller Excel)</label>
+                    <label for="production_file" data-i18n="production_file_label">Produktionsdata (CSV eller Excel)</label>
                     <div class="file-input" onclick="document.getElementById('production_file').click()">
                         <input type="file" id="production_file" name="production_file" accept=".csv,.xlsx,.xls" required>
-                        <p>📁 Klicka för att välja din produktionsfil</p>
-                        <div class="drag-instruction">Eller dra och släpp din CSV/Excel-fil här</div>
+                        <p data-i18n="file_click_instruction">📁 Klicka för att välja din produktionsfil</p>
+                        <div class="drag-instruction" data-i18n="file_drag_instruction">Eller dra och släpp din CSV/Excel-fil här</div>
                         <div class="selected-file" id="selectedFile"></div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="area">Svenskt elområde</label>
+                    <label for="area" data-i18n="area_label">Svenskt elområde</label>
                     <select id="area" name="area" required>
-                        <option value="SE_1">SE_1 - Norra Sverige (Luleå)</option>
-                        <option value="SE_2">SE_2 - Mellersta Sverige (Sundsvall)</option>
-                        <option value="SE_3">SE_3 - Mellersta Sverige (Stockholm)</option>
-                        <option value="SE_4" selected>SE_4 - Södra Sverige (Malmö)</option>
+                        <option value="SE_1" data-i18n="area_se1">SE_1 - Norra Sverige (Luleå)</option>
+                        <option value="SE_2" data-i18n="area_se2">SE_2 - Mellersta Sverige (Sundsvall)</option>
+                        <option value="SE_3" data-i18n="area_se3">SE_3 - Mellersta Sverige (Stockholm)</option>
+                        <option value="SE_4" selected data-i18n="area_se4">SE_4 - Södra Sverige (Malmö)</option>
                     </select>
                 </div>
 
@@ -725,17 +725,17 @@
 
                 <!-- Email input for lead capture -->
                 <div class="form-group">
-                    <label for="userEmailUpfront">Din e-postadress (krävs för AI-analys)</label>
+                    <label for="userEmailUpfront" data-i18n="email_label">Din e-postadress (krävs för AI-analys)</label>
                     <input type="email" id="userEmailUpfront" name="email" required 
                            placeholder="din.epost@exempel.se"
                            style="width: 100%; padding: 12px 16px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; background: white;">
                     <div style="font-size: 0.875rem; color: #6C757D; margin-top: 4px;">
-                        Vi använder din e-post för att spara analysen åt dig. Inga spam eller reklam.
+                        <span data-i18n="email_disclaimer">Vi använder din e-post för att spara analysen åt dig. Inga spam eller reklam.</span>
                     </div>
                 </div>
 
                 <button type="submit" class="analyze-btn" id="analyzeBtn">
-                    <span style="position: relative; z-index: 1;">Analysera med AI-sammanfattning</span>
+                    <span style="position: relative; z-index: 1;" data-i18n="analyze_button">Analysera med AI-sammanfattning</span>
                 </button>
             </form>
         </div>
@@ -743,7 +743,7 @@
 
         <div class="results-section" id="resultsSection">
             <div class="results-header">
-                <h2>📊 Analysresultat</h2>
+                <h2 data-i18n="results_title">📊 Analysresultat</h2>
                 <div id="analysisMetadata"></div>
             </div>
             <div class="results-content" id="resultsContent">
@@ -857,7 +857,7 @@
             
             // Show loading state
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span><span style="position: relative; z-index: 1;">Analyserar...</span>';
+            btn.innerHTML = '<span class="spinner"></span><span style="position: relative; z-index: 1;" data-i18n="analyzing">Analyserar...</span>';
             resultsSection.style.display = 'none';
             
             // Clear previous results
@@ -902,7 +902,7 @@
             } finally {
                 // Reset button
                 btn.disabled = false;
-                btn.innerHTML = '<span style="position: relative; z-index: 1;">Analysera med AI-sammanfattning</span>';
+                btn.innerHTML = '<span style="position: relative; z-index: 1;" data-i18n="analyze_button">Analysera med AI-sammanfattning</span>';
             }
         });
 
@@ -929,7 +929,7 @@
                 <p><strong>File:</strong> ${metadata.filename} | <strong>Area:</strong> ${metadata.area} | <strong>Currency:</strong> ${metadata.currency}</p>
                 <p><strong>Data Type:</strong> ${metadata.granularity} | <strong>Analyzed:</strong> ${new Date(metadata.analyzed_at).toLocaleString()}</p>
                 <div style="background: #FFF3CD; border: 1px solid #FFECB5; color: #856404; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.9rem;">
-                    <strong>⚠️ Viktigt:</strong> Analysen baseras på spotpris exklusive moms och eventuella påslag från ditt elbolag. Det faktiska resultatet kan variera beroende på ditt specifika elavtal.
+                    <span data-i18n="important_disclaimer"><strong>⚠️ Viktigt:</strong> Analysen baseras på spotpris exklusive moms och eventuella påslag från ditt elbolag. Det faktiska resultatet kan variera beroende på ditt specifika elavtal.</span>
                 </div>
             `;
             
@@ -968,15 +968,15 @@
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; margin: 20px 0;">
                                 <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px);">
                                     <div style="font-size: 2.25rem; font-weight: 700; margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1;">${zapProduktion.timmar}</div>
-                                    <div style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2);">Förlorade timmar</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2);" data-i18n="lost_hours">Förlorade timmar</div>
                                 </div>
                                 <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px);">
                                     <div style="font-size: 2.25rem; font-weight: 700; margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1;">${zapProduktion.kwh.toFixed(1)} kWh</div>
-                                    <div style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2);">Olönsam export</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2);" data-i18n="unprofitable_export">Olönsam export</div>
                                 </div>
                                 <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px);">
                                     <div style="font-size: 2.25rem; font-weight: 700; margin-bottom: 8px; text-shadow: 0 2px 6px rgba(0,0,0,0.3); line-height: 1;">${zapProduktion.dagar_drabbade}</div>
-                                    <div style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2);">Drabbade dagar</div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; opacity: 1; text-shadow: 0 1px 3px rgba(0,0,0,0.2);" data-i18n="affected_days">Drabbade dagar</div>
                                 </div>
                             </div>
                             <div style="font-size: 1rem; margin: 20px 0; opacity: 1; text-align: center; line-height: 1.6; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.15);">
@@ -986,7 +986,7 @@
                             <div style="font-size: 1.125rem; font-weight: 500; margin-bottom: 24px; line-height: 1.7; text-shadow: 0 1px 3px rgba(0,0,0,0.15);">
                                 ${zap.lösningen || 'Intelligent exportstyrning pausar automatiskt när marknaden är övermättad, vilket skyddar både din ekonomi och elnätets stabilitet'}
                             </div>
-                            <a href="https://sourceful.energy/store/sourceful-energy-zap" target="_blank" style="display: block; background: #00FF84; color: #1A1A1A; padding: 20px 28px; border-radius: 12px; font-size: 1.25rem; font-weight: 700; text-align: center; margin-top: 24px; text-transform: uppercase; letter-spacing: 0.08em; box-shadow: 0 6px 20px rgba(0, 255, 132, 0.4); cursor: pointer; transition: all 0.3s ease; text-decoration: none;">
+                            <a href="https://sourceful.energy/store/sourceful-energy-zap" target="_blank" style="display: block; background: #00FF84; color: #1A1A1A; padding: 20px 28px; border-radius: 12px; font-size: 1.25rem; font-weight: 700; text-align: center; margin-top: 24px; text-transform: uppercase; letter-spacing: 0.08em; box-shadow: 0 6px 20px rgba(0, 255, 132, 0.4); cursor: pointer; transition: all 0.3s ease; text-decoration: none;" data-i18n="optimize_installation">
                                 ${zap.call_to_action || 'Optimera din anläggning'}
                             </a>
                         </div>
@@ -1003,58 +1003,58 @@
                 <div class="metric-grid">
                     <div class="metric-card">
                         <div class="metric-value">${(produktion.total_kwh || tekniska.production_kwh || 0).toFixed(1)} kWh</div>
-                        <div class="metric-label">Total produktion</div>
+                        <div class="metric-label" data-i18n="total_production">Total produktion</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value ${(produktion.totala_intakter_sek || tekniska.revenue_sek || 0) >= 0 ? 'positive' : 'negative'}">${(produktion.totala_intakter_sek || tekniska.revenue_sek || 0).toFixed(2)} ${metadata.currency}</div>
-                        <div class="metric-label">Totala intäkter</div>
+                        <div class="metric-label" data-i18n="total_revenue">Totala intäkter</div>
                     </div>
                     <div class="metric-card" style="border-left-color: #DC3545;">
                         <div class="metric-value negative">${(exportFörluster.andel_olönsam_export_pct || 0).toFixed(1)}%</div>
-                        <div class="metric-label">Export vid negativa priser</div>
+                        <div class="metric-label" data-i18n="export_negative_prices">Export vid negativa priser</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value">${(produktion.genomsnittspris_erhållet_sek_per_kwh || tekniska.realized_price_wavg_sek_per_kwh || 0).toFixed(3)} ${metadata.currency}/kWh</div>
-                        <div class="metric-label">Genomsnittspris erhållet</div>
+                        <div class="metric-label" data-i18n="average_price_received">Genomsnittspris erhållet</div>
                     </div>
                     <div class="metric-card">
                         <div class="metric-value ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0) <= 0 ? 'negative' : 'positive'}">${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0).toFixed(1)}%</div>
-                        <div class="metric-label">Timing-förlust</div>
+                        <div class="metric-label" data-i18n="timing_loss">Timing-förlust</div>
                     </div>
                 </div>
                 
                 <div class="explanations-container" style="background: linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%); padding: 32px; border-radius: 16px; margin-top: 32px; border: 1px solid rgba(47, 74, 102, 0.15);">
-                    <h3 style="color: #2F4A66; font-weight: 700; margin-bottom: 24px; font-size: 1.375rem; letter-spacing: -0.01em;">Förklaring av nyckeltal</h3>
+                    <h3 style="color: #2F4A66; font-weight: 700; margin-bottom: 24px; font-size: 1.375rem; letter-spacing: -0.01em;" data-i18n="explanation_title">Förklaring av nyckeltal</h3>
                     <div style="margin-left: 0; line-height: 1.8; font-size: 0.9375rem;">
                         <div class="explanation-card" style="margin-bottom: 24px; padding: 20px; background: white; border-radius: 12px; border-left: 4px solid #DC3545; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block; margin-bottom: 8px;">Export vid negativa priser</strong>
-                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;"><strong style="color: #DC3545; font-weight: 600;">${(exportFörluster.andel_olönsam_export_pct || 0).toFixed(1)}%</strong> av din export skedde vid negativa marknadsförhållanden. Detta inträffar när elnätet har överskott av förnybar energi och du får betala för att exportera eller erhåller noll ersättning.</span>
+                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block; margin-bottom: 8px;" data-i18n="export_negative_explanation_title">Export vid negativa priser</strong>
+                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;" data-i18n="export_negative_explanation_text"><strong style="color: #DC3545; font-weight: 600;">${(exportFörluster.andel_olönsam_export_pct || 0).toFixed(1)}%</strong> av din export skedde vid negativa marknadsförhållanden. Detta inträffar när elnätet har överskott av förnybar energi och du får betala för att exportera eller erhåller noll ersättning.</span>
                         </div>
                         <div class="explanation-card" style="margin-bottom: 24px; padding: 20px; background: white; border-radius: 12px; border-left: 4px solid #FD7E14; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block; margin-bottom: 8px;">Marknadstiming: ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0).toFixed(1)}% avvikelse</strong>
-                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;">
+                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block; margin-bottom: 8px;" data-i18n="market_timing_title_dynamic">Marknadstiming: ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0).toFixed(1)}% avvikelse</strong>
+                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;" data-i18n="market_timing_explanation">
                                 ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0) < 0 ? 
                                 `Du erhåller ${Math.abs((produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0)).toFixed(1)}% lägre intäkter än marknadssnittet eftersom din export sammanfaller med perioder av överproduktion i elnätet. Detta är ett strukturellt problem som förvärras när alltfler exporterar samtidigt.` : 
                                 `Din export sker vid gynnsamma marknadstidpunkter och ger ${(produktion.timing_förlust_pct || tekniska.timing_discount_pct || 0).toFixed(1)}% högre intäkter än genomsnittet.`}
                             </span>
                         </div>
                         <div class="explanation-card" style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, rgba(0, 255, 132, 0.1) 0%, rgba(1, 126, 122, 0.1) 100%); border-radius: 12px; border-left: 4px solid #00FF84; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block;">Nätnytta och ekonomisk optimering</strong>
-                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;">Intelligent exportstyrning bidrar till elnätets stabilitet genom att minska överproduktion vid kritiska tidpunkter. För din anläggning innebär detta en årlig optimering på <strong style="color: #017E7A; font-weight: 600;">${(hero.lösningspotential?.möjlig_besparing_med_prisgolv_sek || hero.counterfactuals?.delta_sek || 0).toFixed(0)} ${metadata.currency}</strong> genom att undvika export när marknaden är övermättad.</span>
+                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block;" data-i18n="grid_benefit_title">Nätnytta och ekonomisk optimering</strong>
+                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;" data-i18n="grid_benefit_explanation">Intelligent exportstyrning bidrar till elnätets stabilitet genom att minska överproduktion vid kritiska tidpunkter. För din anläggning innebär detta en årlig optimering på <strong style="color: #017E7A; font-weight: 600;">${(hero.lösningspotential?.möjlig_besparing_med_prisgolv_sek || hero.counterfactuals?.delta_sek || 0).toFixed(0)} ${metadata.currency}</strong> genom att undvika export när marknaden är övermättad.</span>
                         </div>
                         <div class="explanation-card" style="margin-bottom: 0; padding: 20px; background: white; border-radius: 12px; border-left: 4px solid #2F4A66; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block; margin-bottom: 8px;">Framtidsutsikt och regeländringar</strong>
-                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;">Din anläggning påverkades av negativa priser under flera perioder. <strong style="color: #2F4A66;">Viktigt:</strong> Den nuvarande skattereduktionen på 60 öre/kWh upphör vid årsskiftet 2025/2026. Utan detta stöd blir negativa priser ännu mer kostsamma för din investering. Dessutom införs effekttariffer som ytterligare bestraffar export vid olämpliga tidpunkter.</span>
+                            <strong style="color: #2F4A66; font-weight: 600; font-size: 1rem; display: block; margin-bottom: 8px;" data-i18n="future_outlook_title">Framtidsutsikt och regeländringar</strong>
+                            <span style="color: var(--text-secondary); line-height: 1.7; display: block;" data-i18n="future_outlook_explanation">Din anläggning påverkades av negativa priser under flera perioder. <strong style="color: #2F4A66;">Viktigt:</strong> Den nuvarande skattereduktionen på 60 öre/kWh upphör vid årsskiftet 2025/2026. Utan detta stöd blir negativa priser ännu mer kostsamma för din investering. Dessutom införs effekttariffer som ytterligare bestraffar export vid olämpliga tidpunkter.</span>
                         </div>
                     </div>
                 </div>
                 
                 <div style="margin-top: 30px; text-align: center;">
-                    <a href="https://sourceful.energy/store/sourceful-energy-zap" target="_blank" class="cta-btn" style="display: inline-block; background: linear-gradient(135deg, #00FF84, #017E7A); color: white; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(0, 255, 132, 0.3); transition: all 0.3s ease;">
+                    <a href="https://sourceful.energy/store/sourceful-energy-zap" target="_blank" class="cta-btn" style="display: inline-block; background: linear-gradient(135deg, #00FF84, #017E7A); color: white; padding: 16px 32px; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(0, 255, 132, 0.3); transition: all 0.3s ease;" data-i18n="buy_zap_cta">
                         🛒 Köp Zap för att stoppa förlusterna
                     </a>
                     <div style="margin-top: 16px;">
-                        <a href="https://sourceful.energy/" target="_blank" style="color: #017E7A; text-decoration: none; font-size: 14px; font-weight: 500;">
+                        <a href="https://sourceful.energy/" target="_blank" style="color: #017E7A; text-decoration: none; font-size: 14px; font-weight: 500;" data-i18n="read_more_sourceful">
                             Läs mer om Sourceful Energy →
                         </a>
                     </div>
@@ -1062,26 +1062,26 @@
                 
                 <!-- Data Visualization -->
                 <div style="margin-top: 32px; background: white; padding: 24px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-                    <h3 style="color: #2F4A66; font-weight: 700; margin-bottom: 20px; font-size: 1.25rem;">📊 Visualisering av din export</h3>
+                    <h3 style="color: #2F4A66; font-weight: 700; margin-bottom: 20px; font-size: 1.25rem;" data-i18n="visualization_title">📊 Visualisering av din export</h3>
                     <div id="productionChart" style="width: 100%; height: 350px; border: 1px solid #E9ECEF; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #F8F9FA;">
                         <div style="text-align: center; color: #6C757D;">
                             <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
-                            <div style="font-size: 16px; font-weight: 500;">Export per månad</div>
-                            <div style="font-size: 14px; margin-top: 8px; opacity: 0.8;">Andel av månadsproduktionen vid negativa marknadsförhållanden</div>
+                            <div style="font-size: 16px; font-weight: 500;" data-i18n="export_per_month">Export per månad</div>
+                            <div style="font-size: 14px; margin-top: 8px; opacity: 0.8;" data-i18n="negative_export_description">Andel av månadsproduktionen vid negativa marknadsförhållanden</div>
                         </div>
                     </div>
                     <div style="margin-top: 16px; display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <div style="width: 16px; height: 16px; background: #00FF84; border-radius: 4px;"></div>
-                            <span style="font-size: 14px; color: #495057;">Total export (kWh)</span>
+                            <span style="font-size: 14px; color: #495057;" data-i18n="chart_total_export">Total export (kWh)</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <div style="width: 16px; height: 16px; background: #DC3545; border-radius: 4px;"></div>
-                            <span style="font-size: 14px; color: #495057;">Export vid negativa priser (kWh)</span>
+                            <span style="font-size: 14px; color: #495057;" data-i18n="chart_negative_export">Export vid negativa priser (kWh)</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <div style="width: 16px; height: 16px; background: #2F4A66; border-radius: 4px;"></div>
-                            <span style="font-size: 14px; color: #495057;">Andel negativ export (%)</span>
+                            <span style="font-size: 14px; color: #495057;" data-i18n="chart_negative_percentage">Andel negativ export (%)</span>
                         </div>
                     </div>
                 </div>
@@ -1089,6 +1089,9 @@
             
             document.getElementById('resultsContent').innerHTML = metricsHtml;
             document.getElementById('resultsSection').style.display = 'block';
+            
+            // Apply current language to new dynamic content
+            translatePage(currentLanguage);
             
             // Store results for download
             window.analysisResults = analysisData;
@@ -1262,11 +1265,15 @@
                 }
             }
             
-            // Add axis labels
+            // Add axis labels (with translations)
+            const monthLabel = currentLanguage === 'sv' ? 'Månad' : 'Month';
+            const exportLabel = currentLanguage === 'sv' ? 'Export (kWh)' : 'Export (kWh)';
+            const percentageLabel = currentLanguage === 'sv' ? 'Andel negativ (%)' : 'Negative Share (%)';
+            
             svgContent += `
-                    <text x="${margin.left + chartWidth/2}" y="${height - 5}" text-anchor="middle" font-size="14" font-weight="600" fill="#2F4A66">Månad</text>
-                    <text x="25" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="13" font-weight="600" fill="#00FF84" transform="rotate(-90, 25, ${margin.top + chartHeight/2})">Export (kWh)</text>
-                    <text x="${width - 25}" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="13" font-weight="600" fill="#2F4A66" transform="rotate(90, ${width - 25}, ${margin.top + chartHeight/2})">Andel negativ (%)</text>
+                    <text x="${margin.left + chartWidth/2}" y="${height - 5}" text-anchor="middle" font-size="14" font-weight="600" fill="#2F4A66">${monthLabel}</text>
+                    <text x="25" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="13" font-weight="600" fill="#00FF84" transform="rotate(-90, 25, ${margin.top + chartHeight/2})">${exportLabel}</text>
+                    <text x="${width - 25}" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="13" font-weight="600" fill="#2F4A66" transform="rotate(90, ${width - 25}, ${margin.top + chartHeight/2})">${percentageLabel}</text>
                 </svg>
             `;
             
@@ -1284,13 +1291,213 @@
         }
 
         
+        // Language translations
+        const translations = {
+            sv: {
+                title: "Negativa Prisanalyseraren",
+                subtitle: "Upptäck när din export kostar dig pengar",
+                production_file_label: "Produktionsdata (CSV eller Excel)",
+                file_click_instruction: "📁 Klicka för att välja din produktionsfil",
+                file_drag_instruction: "Eller dra och släpp din CSV/Excel-fil här",
+                area_label: "Svenskt elområde",
+                area_se1: "SE_1 - Norra Sverige (Luleå)",
+                area_se2: "SE_2 - Mellersta Sverige (Sundsvall)",
+                area_se3: "SE_3 - Mellersta Sverige (Stockholm)",
+                area_se4: "SE_4 - Södra Sverige (Malmö)",
+                email_label: "Din e-postadress (krävs för AI-analys)",
+                email_placeholder: "din.epost@exempel.se",
+                email_disclaimer: "Vi använder din e-post för att spara analysen åt dig. Inga spam eller reklam.",
+                analyze_button: "Analysera med AI-sammanfattning",
+                analyzing: "Analyserar...",
+                results_title: "📊 Analysresultat",
+                language_label: "Språk:",
+                made_in: "Made with ❤️ in Kalmar, Sweden",
+                total_production: "Total produktion",
+                total_revenue: "Totala intäkter",
+                export_negative_prices: "Export vid negativa priser",
+                average_price_received: "Genomsnittspris erhållet",
+                timing_loss: "Timing-förlust",
+                lost_hours: "Förlorade timmar",
+                unprofitable_export: "Olönsam export",
+                affected_days: "Drabbade dagar",
+                explanation_title: "Förklaring av nyckeltal",
+                export_negative_explanation_title: "Export vid negativa priser",
+                market_timing_title: "Marknadstiming",
+                grid_benefit_title: "Nätnytta och ekonomisk optimering",
+                future_outlook_title: "Framtidsutsikt och regeländringar",
+                export_per_month: "Export per månad",
+                negative_export_description: "Andel av månadsproduktionen vid negativa marknadsförhållanden",
+                important_disclaimer: "⚠️ Viktigt: Analysen baseras på spotpris exklusive moms och eventuella påslag från ditt elbolag. Det faktiska resultatet kan variera beroende på ditt specifika elavtal.",
+                export_negative_explanation_text: "% av din export skedde vid negativa marknadsförhållanden. Detta inträffar när elnätet har överskott av förnybar energi och du får betala för att exportera eller erhåller noll ersättning.",
+                market_timing_title_dynamic: "Marknadstiming: % avvikelse",
+                market_timing_explanation: "Din export timing jämfört med marknadssnittet.",
+                grid_benefit_explanation: "Intelligent exportstyrning bidrar till elnätets stabilitet genom att minska överproduktion vid kritiska tidpunkter. För din anläggning innebär detta en årlig optimering genom att undvika export när marknaden är övermättad.",
+                future_outlook_explanation: "Din anläggning påverkades av negativa priser under flera perioder. Viktigt: Den nuvarande skattereduktionen på 60 öre/kWh upphör vid årsskiftet 2025/2026. Utan detta stöd blir negativa priser ännu mer kostsamma för din investering. Dessutom införs effekttariffer som ytterligare bestraffar export vid olämpliga tidpunkter.",
+                optimize_installation: "Optimera din anläggning",
+                buy_zap_cta: "🛒 Köp Zap för att stoppa förlusterna",
+                read_more_sourceful: "Läs mer om Sourceful Energy →",
+                visualization_title: "📆 Visualisering av din export",
+                chart_total_export: "Total export (kWh)",
+                chart_negative_export: "Export vid negativa priser (kWh)",
+                chart_negative_percentage: "Andel negativ export (%)"
+            },
+            en: {
+                title: "Negative Price Analyzer",
+                subtitle: "Discover when your export costs you money",
+                production_file_label: "Production Data (CSV or Excel)",
+                file_click_instruction: "📁 Click to select your production file",
+                file_drag_instruction: "Or drag and drop your CSV/Excel file here",
+                area_label: "Swedish Electricity Area",
+                area_se1: "SE_1 - Northern Sweden (Luleå)",
+                area_se2: "SE_2 - Central Sweden (Sundsvall)",
+                area_se3: "SE_3 - Central Sweden (Stockholm)",
+                area_se4: "SE_4 - Southern Sweden (Malmö)",
+                email_label: "Your email address (required for AI analysis)",
+                email_placeholder: "your.email@example.com",
+                email_disclaimer: "We use your email to save the analysis for you. No spam or ads.",
+                analyze_button: "Analyze with AI Summary",
+                analyzing: "Analyzing...",
+                results_title: "📊 Analysis Results",
+                language_label: "Language:",
+                made_in: "Made with ❤️ in Kalmar, Sweden",
+                total_production: "Total Production",
+                total_revenue: "Total Revenue",
+                export_negative_prices: "Export at Negative Prices",
+                average_price_received: "Average Price Received",
+                timing_loss: "Timing Loss",
+                lost_hours: "Lost Hours",
+                unprofitable_export: "Unprofitable Export",
+                affected_days: "Affected Days",
+                explanation_title: "Explanation of Key Metrics",
+                export_negative_explanation_title: "Export at Negative Prices",
+                market_timing_title: "Market Timing",
+                grid_benefit_title: "Grid Benefits and Economic Optimization",
+                future_outlook_title: "Future Outlook and Regulatory Changes",
+                export_per_month: "Export per Month",
+                negative_export_description: "Share of monthly production during negative market conditions",
+                important_disclaimer: "⚠️ Important: The analysis is based on spot prices excluding VAT and any surcharges from your electricity company. Actual results may vary depending on your specific electricity contract.",
+                export_negative_explanation_text: "% of your export occurred during negative market conditions. This happens when the grid has excess renewable energy and you have to pay to export or receive zero compensation.",
+                market_timing_title_dynamic: "Market Timing: % deviation",
+                market_timing_explanation: "Your export timing compared to market average.",
+                grid_benefit_explanation: "Intelligent export control contributes to grid stability by reducing overproduction during critical periods. For your installation, this means annual optimization by avoiding export when the market is oversaturated.",
+                future_outlook_explanation: "Your installation was affected by negative prices during several periods. Important: The current tax reduction of 60 öre/kWh ends at the turn of 2025/2026. Without this support, negative prices become even more costly for your investment. Additionally, effect tariffs are being introduced that further penalize export at inappropriate times.",
+                optimize_installation: "Optimize Your Installation",
+                buy_zap_cta: "🛒 Buy Zap to Stop the Losses",
+                read_more_sourceful: "Learn more about Sourceful Energy →",
+                visualization_title: "📆 Visualization of Your Export",
+                chart_total_export: "Total export (kWh)",
+                chart_negative_export: "Export at negative prices (kWh)",
+                chart_negative_percentage: "Share of negative export (%)"
+            }
+        };
+
+        let currentLanguage = 'sv';
+
+        function translatePage(lang) {
+            currentLanguage = lang;
+            const t = translations[lang];
+            
+            // Update all elements with data-i18n attributes
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (t[key]) {
+                    // Handle special dynamic content cases
+                    if (key === 'export_negative_explanation_text' && element.innerHTML) {
+                        // Extract the percentage value from existing content
+                        const percentMatch = element.innerHTML.match(/(\d+\.?\d*)%/);
+                        const percent = percentMatch ? percentMatch[1] : '0.0';
+                        element.innerHTML = `<strong style="color: #DC3545; font-weight: 600;">${percent}%</strong> ${t[key]}`;
+                    } else if (key === 'market_timing_title_dynamic' && element.innerHTML) {
+                        // Extract the percentage value from existing content
+                        const percentMatch = element.innerHTML.match(/(\d+\.?\d*)%/);
+                        const percent = percentMatch ? percentMatch[1] : '0.0';
+                        element.textContent = lang === 'sv' ? `Marknadstiming: ${percent}% avvikelse` : `Market Timing: ${percent}% deviation`;
+                    } else if (key === 'grid_benefit_explanation' && element.innerHTML) {
+                        // Extract currency values from existing content
+                        const currencyMatch = element.innerHTML.match(/(\d+)\s+(SEK|EUR|USD|NOK)/);
+                        const amount = currencyMatch ? currencyMatch[1] : '0';
+                        const currency = currencyMatch ? currencyMatch[2] : 'SEK';
+                        const baseText = t[key];
+                        if (lang === 'sv') {
+                            element.innerHTML = `Intelligent exportstyrning bidrar till elnätets stabilitet genom att minska överproduktion vid kritiska tidpunkter. För din anläggning innebär detta en årlig optimering på <strong style="color: #017E7A; font-weight: 600;">${amount} ${currency}</strong> genom att undvika export när marknaden är övermättad.`;
+                        } else {
+                            element.innerHTML = `Intelligent export control contributes to grid stability by reducing overproduction during critical periods. For your installation, this means annual optimization of <strong style="color: #017E7A; font-weight: 600;">${amount} ${currency}</strong> by avoiding export when the market is oversaturated.`;
+                        }
+                    } else if (key === 'market_timing_explanation' && element.innerHTML) {
+                        // Handle complex market timing explanation with dynamic percentages
+                        const percentMatch = element.innerHTML.match(/(\d+\.?\d*)%/);
+                        const percent = percentMatch ? percentMatch[1] : '0.0';
+                        if (lang === 'sv') {
+                            element.innerHTML = `Du erhåller ${percent}% lägre intäkter än marknadssnittet eftersom din export sammanfaller med perioder av överproduktion i elnätet. Detta är ett strukturellt problem som förvärras när alltfler exporterar samtidigt.`;
+                        } else {
+                            element.innerHTML = `You receive ${percent}% lower revenue than the market average because your export coincides with periods of overproduction in the grid. This is a structural problem that worsens as more people export simultaneously.`;
+                        }
+                    } else {
+                        element.textContent = t[key];
+                    }
+                }
+            });
+            
+            // Update placeholder attributes
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (t[key]) {
+                    element.placeholder = t[key];
+                }
+            });
+            
+            // Update language button states
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'white';
+                btn.style.color = '#495057';
+                btn.style.border = '1px solid #E9ECEF';
+            });
+            
+            const activeBtn = document.querySelector(`[data-lang="${lang}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.style.background = '#017E7A';
+                activeBtn.style.color = 'white';
+                activeBtn.style.border = 'none';
+            }
+            
+            // Store language preference
+            localStorage.setItem('preferredLanguage', lang);
+            
+            // Regenerate chart with new language if analysis results are available
+            if (window.analysisResults && window.analysisResults.analysis) {
+                generateProductionChart(window.analysisResults.analysis);
+            }
+        }
+
+        // Initialize language functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up language switcher event listeners
+            document.getElementById('langSv').addEventListener('click', () => translatePage('sv'));
+            document.getElementById('langEn').addEventListener('click', () => translatePage('en'));
+            
+            // Load saved language preference or default to Swedish
+            const savedLang = localStorage.getItem('preferredLanguage') || 'sv';
+            translatePage(savedLang);
+        });
+        
     </script>
     <a href="https://sourceful.energy" target="_blank" class="sourceful-badge" style="text-decoration: none; color: var(--energetic-teal); background: var(--pencil-grey); transition: all 0.3s ease;">
         POWERED BY SOURCEFUL
     </a>
     
+    <!-- Language Selector -->
+    <div id="languageSelector" style="position: fixed; bottom: 20px; left: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 8px; z-index: 1001; border: 1px solid #E9ECEF;">
+        <div style="display: flex; gap: 4px; align-items: center;">
+            <span style="font-size: 12px; color: #6C757D; margin-right: 8px;" data-i18n="language_label">Language:</span>
+            <button id="langSv" class="lang-btn active" data-lang="sv" style="padding: 4px 8px; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; background: #017E7A; color: white; font-weight: 500;">🇸🇪 SV</button>
+            <button id="langEn" class="lang-btn" data-lang="en" style="padding: 4px 8px; border: 1px solid #E9ECEF; border-radius: 4px; font-size: 12px; cursor: pointer; background: white; color: #495057; font-weight: 500;">🇬🇧 EN</button>
+        </div>
+    </div>
+    
     <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #6C757D; text-align: center; pointer-events: none; z-index: 1000;">
-        Made with ❤️ in Kalmar, Sweden
+        <span data-i18n="made_in">Made with ❤️ in Kalmar, Sweden</span>
     </div>
 </body>
 </html>
