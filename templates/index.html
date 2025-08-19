@@ -1841,6 +1841,13 @@
             padding: var(--space-8);
         }
         
+        /* Mobile: Apply 10px side padding to headers */
+        @media (max-width: 768px) {
+            .results-header {
+                padding: var(--space-8) 10px 0;
+            }
+        }
+        
         .metric-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr); /* Use 6 columns for precise control */
@@ -2017,6 +2024,16 @@
             }
         }
         
+        /* Page footer that scrolls with content */
+        .page-footer {
+            text-align: center;
+            padding: var(--space-8) 10px var(--space-6);
+            margin-top: var(--space-12);
+            font-size: var(--text-sm);
+            color: var(--muted-foreground);
+            background: var(--background);
+        }
+        
         /* Enhanced Mobile Readability */
         @media (max-width: 768px) {
             :root {
@@ -2039,15 +2056,15 @@
             }
             
             .container {
-                padding: 12px;
+                padding: 10px;
             }
             
             .header {
-                padding: var(--spacing-lg);
+                padding: 10px;
             }
             
             .upload-section, .results-content {
-                padding: var(--spacing-lg);
+                padding: 10px;
             }
             
             .metric-value {
@@ -2158,6 +2175,9 @@
                 gap: 16px;
             }
             
+            .metric-card:nth-child(1),
+            .metric-card:nth-child(2), 
+            .metric-card:nth-child(3),
             .metric-card:nth-child(4),
             .metric-card:nth-child(5) {
                 grid-row: auto;
@@ -3465,14 +3485,14 @@
         });
         
     </script>
+    <!-- Keep Sourceful badge fixed as before -->
     <a href="https://sourceful.energy" target="_blank" class="sourceful-badge" style="text-decoration: none; color: var(--energetic-teal); background: var(--pencil-grey); transition: all 0.3s ease;">
         POWERED BY SOURCEFUL
     </a>
     
-
-    
-    <div style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 12px; color: #6C757D; text-align: center; pointer-events: none; z-index: 1000;">
+    <!-- Footer that scrolls with page -->
+    <footer class="page-footer">
         <span data-i18n="made_in">Made with ❤️ in Kalmar, Sweden</span>
-    </div>
+    </footer>
 </body>
 </html>
