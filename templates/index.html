@@ -114,6 +114,7 @@
             
             /* Light Theme Colors */
             --background: #ffffff;
+            --background-rgb: 255, 255, 255;
             --foreground: #000000;
             --muted: #f8f9fa;
             --muted-foreground: #6c757d;
@@ -198,6 +199,7 @@
         /* Dark Theme */
         [data-theme="dark"] {
             --background: #000000;
+            --background-rgb: 0, 0, 0;
             --foreground: #ffffff;
             --muted: #1a1a1a;
             --muted-foreground: #a1a1aa;
@@ -1701,8 +1703,12 @@
                 bottom: 0;
                 background: linear-gradient(to right, 
                     var(--background) 0%, 
-                    var(--background) 40%, 
-                    transparent 70%);
+                    var(--background) 25%, 
+                    rgba(var(--background-rgb), 0.8) 35%,
+                    rgba(var(--background-rgb), 0.4) 50%,
+                    rgba(var(--background-rgb), 0.2) 65%,
+                    rgba(var(--background-rgb), 0.1) 80%,
+                    transparent 100%);
                 z-index: 1;
                 pointer-events: none;
             }
