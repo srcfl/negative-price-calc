@@ -1647,8 +1647,8 @@
         
         /* Hero Section */
         .hero-section {
-            padding: var(--space-6) 0;
-            margin-bottom: var(--space-6);
+            padding: calc(var(--space-6) - 10px) 0;
+            margin-bottom: calc(var(--space-6) - 10px);
             text-align: left;
             position: relative;
             overflow: hidden;
@@ -1998,7 +1998,7 @@
             }
             
             .header-logo img {
-                height: 28px !important; /* Smaller logo on mobile */
+                height: 24px !important; /* Smaller logo on mobile */
             }
             
             .header-controls {
@@ -2032,7 +2032,7 @@
             }
             
             .header-title h1 {
-                font-size: var(--text-3xl);
+                font-size: var(--text-2xl);
                 text-align: left;
             }
             
@@ -2626,11 +2626,11 @@
                 <img src="/static/images/Sourceful-wide-dark.png" 
                      alt="Sourceful Energy" 
                      class="logo-light" 
-                     style="height: 40px; width: auto;">
+                     style="height: 32px; width: auto;">
                 <img src="/static/images/Sourceful-wide-green-gradient.png" 
                      alt="Sourceful Energy" 
                      class="logo-dark" 
-                     style="height: 40px; width: auto;">
+                     style="height: 32px; width: auto;">
             </div>
             <div class="header-controls">
                 <div class="controls-group">
@@ -2675,6 +2675,7 @@
 
                 <div class="form-group">
                     <label for="area" class="form-label" data-i18n="area_label">Svenskt elområde</label>
+                    <div class="text-sm text-muted-foreground mb-3" data-i18n="area_help">Du hittar ditt elområde (SE1–SE4) på din elräkning under Elområde. Det står vanligtvis nära ditt anläggnings-ID.</div>
                     <select id="area" name="area" class="form-select" required>
                         <option value="SE_1" data-i18n="area_se1">SE_1 - Norra Sverige (Luleå)</option>
                         <option value="SE_2" data-i18n="area_se2">SE_2 - Mellersta Sverige (Sundsvall)</option>
@@ -3652,6 +3653,7 @@
                 file_click_instruction: "Klicka för att välja din solcellsproduktionsfil",
                 file_drag_instruction: "Eller dra och släpp din CSV/Excel-fil här",
                 area_label: "Svenskt elområde",
+                area_help: "Du hittar ditt elområde (SE1–SE4) på din elräkning under Elområde. Det står vanligtvis nära ditt anläggnings-ID.",
                 area_se1: "SE_1 - Norra Sverige (Luleå)",
                 area_se2: "SE_2 - Mellersta Sverige (Sundsvall)",
                 area_se3: "SE_3 - Mellersta Sverige (Stockholm)",
@@ -3705,6 +3707,7 @@
                 file_click_instruction: "Click to select your solar production file",
                 file_drag_instruction: "Or drag and drop your CSV/Excel file here",
                 area_label: "Swedish Electricity Area",
+                area_help: "You'll find your electricity area (SE1–SE4) on your energy bill under Elområde. It's usually listed near your delivery point ID (Anläggnings-ID).",
                 area_se1: "SE_1 - Northern Sweden (Luleå)",
                 area_se2: "SE_2 - Central Sweden (Sundsvall)",
                 area_se3: "SE_3 - Central Sweden (Stockholm)",
