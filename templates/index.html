@@ -461,12 +461,24 @@
             color: var(--foreground);
             cursor: pointer;
             transition: all 0.2s ease;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
         }
         
         .form-select:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 2px var(--ring);
+        }
+        
+        /* Dark mode dropdown arrow */
+        [data-theme="dark"] .form-select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
         }
         
         /* File Upload Component */
@@ -1561,7 +1573,7 @@
         .header-title {
             display: flex;
             flex-direction: column;
-            gap: var(--space-1);
+            gap: 20px;
         }
         
         .header-title h1 {
@@ -1572,6 +1584,7 @@
             margin: 0;
             line-height: 1.1;
             letter-spacing: -0.03em;
+            text-align: left;
         }
         
         .header-title .subtitle {
@@ -1580,6 +1593,15 @@
             font-weight: var(--font-medium);
             color: var(--muted-foreground);
             margin: 0;
+            text-align: left;
+            width: 50%;
+        }
+        
+        /* Mobile: Reset subtitle width to full width */
+        @media (max-width: 768px) {
+            .header-title .subtitle {
+                width: 100%;
+            }
         }
         
         .header-controls {
@@ -1593,9 +1615,6 @@
             display: flex;
             align-items: center;
             gap: var(--space-3);
-            background-color: var(--muted);
-            border-radius: var(--radius-lg);
-            padding: var(--space-2);
         }
         
         .lang-selector {
@@ -1604,8 +1623,8 @@
         }
         
         .lang-btn {
-            padding: var(--space-2) var(--space-3);
-            border: none;
+            padding: var(--space-2);
+            border: 1px solid var(--border);
             border-radius: var(--radius);
             background: transparent;
             color: var(--muted-foreground);
@@ -1613,30 +1632,48 @@
             font-weight: var(--font-medium);
             cursor: pointer;
             transition: all 0.2s ease;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .lang-btn:hover {
+            background-color: var(--muted);
+            color: var(--foreground);
         }
         
         .lang-btn.active {
-            background-color: #000000;
-            color: var(--primary);
+            background-color: var(--foreground);
+            color: var(--background);
+            border-color: var(--foreground);
         }
         
         [data-theme="dark"] .lang-btn.active {
             background-color: var(--primary);
             color: var(--background);
+            border-color: var(--primary);
         }
         
         .theme-toggle-btn {
             padding: var(--space-2);
-            border: none;
+            border: 1px solid var(--border);
             border-radius: var(--radius);
             background: transparent;
             color: var(--muted-foreground);
-            font-size: var(--text-lg);
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        
+        .theme-icon {
+            width: 16px;
+            height: 16px;
         }
         
         .theme-toggle-btn:hover {
@@ -1647,24 +1684,57 @@
         /* Mobile Header */
         @media (max-width: 768px) {
             .header {
-                flex-direction: column;
-                gap: var(--space-4);
-                align-items: flex-start;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: var(--space-2);
             }
             
-            .header-brand {
-                width: 100%;
-                justify-content: center;
+            .header-logo img {
+                height: 28px !important; /* Smaller logo on mobile */
+            }
+            
+            .header-controls {
+                gap: var(--space-2);
+            }
+            
+            .controls-group {
+                display: flex;
+                align-items: center;
+                gap: var(--space-2);
+            }
+            
+            .lang-selector {
+                gap: var(--space-1);
+            }
+            
+            .lang-btn {
+                font-size: var(--text-xs);
+                min-width: 40px;
+                height: 40px;
+            }
+            
+            .theme-toggle-btn {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .theme-icon {
+                width: 14px;
+                height: 14px;
             }
             
             .header-title h1 {
                 font-size: var(--text-3xl);
-                text-align: center;
+                text-align: left;
             }
             
-            .header-controls {
-                width: 100%;
-                justify-content: center;
+            .header-title .subtitle {
+                text-align: left;
+            }
+            
+            .header-title {
+                margin-top: var(--space-4);
             }
         }
         
@@ -2258,11 +2328,11 @@
             <div class="header-controls">
                 <div class="controls-group">
                     <div class="lang-selector">
-                        <button id="langSv" class="lang-btn active" data-lang="sv">🇸🇪 SV</button>
-                        <button id="langEn" class="lang-btn" data-lang="en">🇬🇧 EN</button>
+                        <button id="langSv" class="lang-btn active" data-lang="sv">SV</button>
+                        <button id="langEn" class="lang-btn" data-lang="en">EN</button>
                     </div>
                     <button id="themeToggle" class="theme-toggle-btn" title="Toggle theme">
-                        <span class="theme-icon">🌙</span>
+                        <i data-lucide="moon" class="theme-icon"></i>
                     </button>
                 </div>
             </div>
@@ -2270,8 +2340,8 @@
 
         <div class="hero-section">
             <div class="header-title">
-                <h1 data-i18n="title">Negative Price Analyzer</h1>
-                <p class="subtitle" data-i18n="subtitle">Discover when your export costs you money</p>
+                <h1 data-i18n="title">Stop Paying to Export Solar</h1>
+                <p class="subtitle" data-i18n="subtitle">Negative prices sneak up on solar owners. Our analyzer reveals when your clean energy costs you cash - and points you toward smarter ways to keep the value at home.</p>
             </div>
         </div>
 
@@ -2313,7 +2383,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg" id="analyzeBtn" style="width: 100%; margin-top: var(--space-6);">
-                    <span data-i18n="analyze_button">Analysera med AI-sammanfattning</span>
+                    <span data-i18n="analyze_button">Analysera</span>
                 </button>
             </form>
         </div>
@@ -2484,7 +2554,7 @@
             } finally {
                 // Reset button
                 btn.disabled = false;
-                btn.innerHTML = '<span data-i18n="analyze_button">Analysera med AI-sammanfattning</span>';
+                btn.innerHTML = '<span data-i18n="analyze_button">Analysera</span>';
                 // Re-apply current language translations to the reset button
                 translatePage(currentLanguage);
             }
@@ -3253,8 +3323,8 @@
         // Language translations
         const translations = {
             sv: {
-                title: "Negativa Prisanalyseraren",
-                subtitle: "Upptäck när din export kostar dig pengar",
+                title: "Sluta Betala för att Exportera Solel",
+                subtitle: "Negativa priser smyger sig på solcellsägare. Vår analysator avslöjar när din rena energi kostar dig pengar - och visar dig smartare sätt att behålla värdet hemma.",
                 production_file_label: "Produktionsdata (CSV eller Excel)",
                 file_click_instruction: "Klicka för att välja din produktionsfil",
                 file_drag_instruction: "Eller dra och släpp din CSV/Excel-fil här",
@@ -3266,7 +3336,7 @@
                 email_label: "Din e-postadress (krävs för AI-analys)",
                 email_placeholder: "din.epost@exempel.se",
                 email_disclaimer: "Vi använder din e-post för att spara analysen åt dig. Inga spam eller reklam.",
-                analyze_button: "Analysera med AI-sammanfattning",
+                analyze_button: "Analysera",
                 analyzing: "Analyserar...",
                 results_title: "Analysresultat",
                 language_label: "Språk:",
@@ -3301,8 +3371,8 @@
                 chart_negative_percentage: "Andel negativ export (%)"
             },
             en: {
-                title: "Negative Price Analyzer",
-                subtitle: "Discover when your solar export costs you money",
+                title: "Stop Paying to Export Solar",
+                subtitle: "Negative prices sneak up on solar owners. Our analyzer reveals when your clean energy costs you cash - and points you toward smarter ways to keep the value at home.",
                 production_file_label: "Production Data (CSV or Excel)",
                 file_click_instruction: "Click to select your production file",
                 file_drag_instruction: "Or drag and drop your CSV/Excel file here",
@@ -3314,7 +3384,7 @@
                 email_label: "Your email address",
                 email_placeholder: "your.email@example.com",
                 email_disclaimer: "We use your email to save the analysis for you. No spam or ads.",
-                analyze_button: "Analyze with AI Summary",
+                analyze_button: "Analyse",
                 analyzing: "Analyzing...",
                 results_title: "Analysis Results",
                 language_label: "Language:",
@@ -3434,7 +3504,9 @@
             // Update theme toggle icon
             const themeIcon = document.querySelector('.theme-icon');
             if (themeIcon) {
-                themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+                themeIcon.setAttribute('data-lucide', theme === 'dark' ? 'sun' : 'moon');
+                // Reinitialize Lucide icons for the updated icon
+                lucide.createIcons();
             }
             
             // Store theme preference
