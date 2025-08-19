@@ -591,6 +591,10 @@
             color: #DC3545;
         }
         
+        .metric-value.warning {
+            color: #FF7A00; /* Orange for 1-5% range */
+        }
+        
         /* Dark mode: Use brand green for positive values and sparklines */
         [data-theme="dark"] {
             --success: #00FF84;
@@ -601,12 +605,20 @@
             color: #00FF84; /* Brand green for dark mode */
         }
         
+        [data-theme="dark"] .metric-value.warning {
+            color: #FF7A00; /* Same orange for dark mode */
+        }
+        
         [data-theme="dark"] .sparkline-path {
             stroke: #00FF84; /* Brand green sparklines in dark mode */
         }
         
         [data-theme="dark"] .metric-value.positive ~ .metric-mini-graph .sparkline-path {
             stroke: #00FF84; /* Brand green for positive metric sparklines */
+        }
+        
+        [data-theme="dark"] .metric-value.warning ~ .metric-mini-graph .sparkline-path {
+            stroke: #FF7A00; /* Orange sparkline for warning in dark mode */
         }
         
         /* Enhanced metric card with mini-graph */
@@ -669,12 +681,28 @@
             stroke: #DC3545;
         }
         
+        .metric-card.warning-highlight .sparkline-path {
+            stroke: #FF7A00;
+        }
+        
+        .metric-card.positive-highlight .sparkline-path {
+            stroke: #16a34a;
+        }
+        
+        [data-theme="dark"] .metric-card.positive-highlight .sparkline-path {
+            stroke: #00FF84;
+        }
+        
         .metric-value.positive ~ .metric-mini-graph .sparkline-path {
             stroke: #16a34a; /* Darker green for light mode */
         }
         
         .metric-value.negative ~ .metric-mini-graph .sparkline-path {
             stroke: #DC3545;
+        }
+        
+        .metric-value.warning ~ .metric-mini-graph .sparkline-path {
+            stroke: #FF7A00; /* Orange sparkline for warning */
         }
         
         /* Trend indicator */
@@ -2458,6 +2486,99 @@
             const produktion = hero.produktion || {};
             const tidsanalys = hero.tidsanalys || {};
             const tekniska = hero.tekniska_mått || hero; // Fallback to root hero for old structure
+            
+            // Calculate overall negative price percentage from monthly aggregates with multiple fallbacks
+            function calculateOverallNegativePricePercentage() {
+                try {
+                    // Primary method: Use monthly aggregates
+                    if (analysis.aggregates?.monthly && analysis.aggregates.monthly.length > 0) {
+                        let totalHoursWithProduction = 0;
+                        let totalNegativeHours = 0;
+                        
+                        analysis.aggregates.monthly.forEach(month => {
+                            const hoursWithProduction = month.hours_with_production || 0;
+                            const negativePercentage = month.non_positive_percent_hours || 0;
+                            const negativeHours = (hoursWithProduction * negativePercentage) / 100;
+                            
+                            totalHoursWithProduction += hoursWithProduction;
+                            totalNegativeHours += negativeHours;
+                        });
+                        
+                        if (totalHoursWithProduction > 0) {
+                            return (totalNegativeHours / totalHoursWithProduction) * 100;
+                        }
+                    }
+                    
+                    // Fallback 1: Use hero.share_non_positive_during_production_pct if available
+                    if (hero.share_non_positive_during_production_pct !== undefined) {
+                        console.log('Using fallback: hero.share_non_positive_during_production_pct');
+                        return hero.share_non_positive_during_production_pct;
+                    }
+                    
+                    // Fallback 2: Use tekniska data if available
+                    if (tekniska.share_non_positive_during_production_pct !== undefined) {
+                        console.log('Using fallback: tekniska.share_non_positive_during_production_pct');
+                        return tekniska.share_non_positive_during_production_pct;
+                    }
+                    
+                    console.warn('No negative price percentage data found in any source');
+                    return 0;
+                    
+                } catch (error) {
+                    console.error('Error calculating negative price percentage:', error);
+                    return 0;
+                }
+            }
+            
+            const calculatedNegativePricePercentage = calculateOverallNegativePricePercentage();
+            
+            // Check for URL parameter to fake data for testing colors
+            const urlParams = new URLSearchParams(window.location.search);
+            const fakeNegativePercent = urlParams.get('fakeNegativePercent');
+            
+            // Function to determine color class based on negative price percentage
+            function getNegativePriceColorClass(percentage) {
+                if (percentage === 0) {
+                    return 'positive'; // Green for 0%
+                } else if (percentage >= 1 && percentage <= 5) {
+                    return 'warning'; // Orange for 1-5%
+                } else if (percentage >= 6) {
+                    return 'negative'; // Red for 6%+
+                } else {
+                    return 'positive'; // Default to green for any edge cases
+                }
+            }
+            
+            // Use fake data if provided, otherwise use calculated/actual data
+            const finalNegativePercentage = fakeNegativePercent ? parseFloat(fakeNegativePercent) : (calculatedNegativePricePercentage || exportFörluster.andel_olönsam_export_pct || 0);
+            const negativeColorClass = getNegativePriceColorClass(finalNegativePercentage);
+            
+            // Data validation and debugging
+            console.log('Data Integrity Check:');
+            console.log('- exportFörluster.andel_olönsam_export_pct:', exportFörluster.andel_olönsam_export_pct);
+            console.log('- calculatedNegativePricePercentage:', calculatedNegativePricePercentage);
+            console.log('- finalNegativePercentage:', finalNegativePercentage);
+            console.log('- negativeColorClass:', negativeColorClass);
+            if (fakeNegativePercent) {
+                console.log('🎨 FAKE DATA MODE: Using fakeNegativePercent =', fakeNegativePercent);
+            }
+            console.log('- Monthly data available:', !!analysis.aggregates?.monthly);
+            if (analysis.aggregates?.monthly) {
+                console.log('- Monthly data length:', analysis.aggregates.monthly.length);
+                console.log('- Sample month data:', analysis.aggregates.monthly[0]);
+            }
+            
+            // Validation: warn if data sources disagree significantly
+            if (exportFörluster.andel_olönsam_export_pct && calculatedNegativePricePercentage) {
+                const difference = Math.abs(exportFörluster.andel_olönsam_export_pct - calculatedNegativePricePercentage);
+                if (difference > 1) { // More than 1% difference
+                    console.warn('⚠️ Data inconsistency detected:', {
+                        exportFörluster: exportFörluster.andel_olönsam_export_pct,
+                        calculated: calculatedNegativePricePercentage,
+                        difference: difference
+                    });
+                }
+            }
             const zap = hero.zap_lösning || {};
             
             // Show metadata (without disclaimer)
@@ -2550,13 +2671,13 @@
                         colorClass: (produktion.totala_intakter_sek || tekniska.revenue_sek || 0) >= 0 ? 'positive' : 'negative'
                     })}
                     ${generateEnhancedMetricCard({
-                        value: (exportFörluster.andel_olönsam_export_pct || 0).toFixed(1),
+                        value: finalNegativePercentage.toFixed(1),
                         unit: '%',
                         label: 'export_negative_prices',
                         data: analysis.aggregates?.monthly?.map(m => m.non_positive_percent_hours || 0) || [],
-                        type: 'negative',
-                        colorClass: 'negative',
-                        cardClass: 'negative-highlight'
+                        type: negativeColorClass,
+                        colorClass: negativeColorClass,
+                        cardClass: finalNegativePercentage === 0 ? 'positive-highlight' : (finalNegativePercentage <= 5 ? 'warning-highlight' : 'negative-highlight')
                     })}
                     ${generateEnhancedMetricCard({
                         value: (produktion.genomsnittspris_erhållet_sek_per_kwh || tekniska.realized_price_wavg_sek_per_kwh || 0).toFixed(3),
@@ -2609,7 +2730,7 @@
                                 <i data-lucide="trending-down" class="explanation-card-icon negative"></i>
                                 <span data-i18n="export_negative_explanation_title">Export vid negativa priser</span>
                             </strong>
-                            <span class="explanation-card-text" data-i18n="export_negative_explanation_text"><strong style="color: #DC3545; font-weight: 600;">${(exportFörluster.andel_olönsam_export_pct || 0).toFixed(1)}%</strong> av din export skedde vid negativa marknadsförhållanden. Detta inträffar när elnätet har överskott av förnybar energi och du får betala för att exportera eller erhåller noll ersättning.</span>
+                            <span class="explanation-card-text" data-i18n="export_negative_explanation_text"><strong style="color: #DC3545; font-weight: 600;">${(calculatedNegativePricePercentage || exportFörluster.andel_olönsam_export_pct || 0).toFixed(1)}%</strong> av din export skedde vid negativa marknadsförhållanden. Detta inträffar när elnätet har överskott av förnybar energi och du får betala för att exportera eller erhåller noll ersättning.</span>
                         </div>
                         <div class="explanation-card timing-card">
                             <strong class="explanation-card-title">
@@ -2782,6 +2903,8 @@
                         };
                     case 'negative':
                         return { stroke: '#ef4444', fill: '#ef4444' };
+                    case 'warning':
+                        return { stroke: '#FF7A00', fill: '#FF7A00' };
                     case 'price':
                         return { stroke: '#00FF84', fill: '#00FF84' };
                     case 'timing':
