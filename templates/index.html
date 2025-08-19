@@ -1285,6 +1285,130 @@
             font-size: var(--text-sm);
         }
         
+        /* Solution Section Styling */
+        .solution-section {
+            margin-top: var(--space-12);
+        }
+        
+        .solution-title {
+            color: var(--foreground);
+            font-weight: var(--font-bold);
+            margin-bottom: var(--space-6);
+            font-size: var(--text-2xl);
+            letter-spacing: -0.01em;
+        }
+        
+        .solution-card {
+            padding: var(--space-8);
+            background: #1a1a1a;
+            border-radius: var(--radius-lg);
+            border: 1px solid #333333;
+            box-shadow: var(--shadow-sm);
+            transition: background 0.2s ease;
+        }
+        
+        .solution-card:hover {
+            background: #222222;
+        }
+        
+        /* Theme overrides for solution card */
+        [data-theme="dark"] .solution-card {
+            background: #1a1a1a;
+            border: 1px solid #333333;
+        }
+        
+        [data-theme="dark"] .solution-card:hover {
+            background: #222222;
+        }
+        
+        [data-theme="light"] .solution-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+        
+        [data-theme="light"] .solution-card:hover {
+            background: #f1f3f4;
+        }
+        
+        .solution-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+        
+        .solution-card-icon {
+            width: 24px;
+            height: 24px;
+            color: #00FF84;
+            flex-shrink: 0;
+        }
+        
+        [data-theme="light"] .solution-card-icon {
+            color: #16a34a;
+        }
+        
+        .solution-card-title {
+            color: var(--foreground);
+            font-weight: var(--font-semibold);
+            font-size: var(--text-lg);
+            margin: 0;
+        }
+        
+        .solution-card-content {
+            display: block;
+        }
+        
+        .solution-card-text {
+            color: var(--muted-foreground);
+            line-height: 1.6;
+            font-size: var(--text-base);
+            margin-bottom: var(--space-4);
+        }
+        
+
+        
+        .solution-cta-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-6);
+            font-family: var(--font-body);
+            font-size: var(--text-base);
+            font-weight: var(--font-semibold);
+            border-radius: var(--radius);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            outline: none;
+            background-color: var(--btn-primary);
+            color: var(--btn-primary-foreground);
+        }
+        
+        .solution-cta-button:hover:not(:disabled) {
+            background-color: var(--btn-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .solution-cta-button:focus-visible {
+            outline: 2px solid var(--ring);
+            outline-offset: 2px;
+        }
+        
+        /* Mobile responsiveness for solution section */
+        @media (max-width: 768px) {
+            .solution-card {
+                padding: var(--space-6);
+            }
+            
+            .solution-title {
+                font-size: var(--text-xl);
+            }
+        }
+        
         .results-cta-section {
             margin-top: var(--space-8);
             text-align: center;
@@ -2896,15 +3020,24 @@
                     <span data-i18n="important_disclaimer"><strong>⚠️ Viktigt:</strong> Analysen baseras på spotpris exklusive moms och eventuella påslag från ditt elbolag. Det faktiska resultatet kan variera beroende på ditt specifika elavtal.</span>
                 </div>
                 
-                <!-- CTA buttons moved below disclaimer -->
-                <div class="results-cta-section">
-                    <a href="https://sourceful.energy/store/sourceful-energy-zap" target="_blank" class="results-cta-button" data-i18n="buy_zap_cta">
-                        🛒 Köp Zap för att stoppa förlusterna
-                    </a>
-                    <div class="results-cta-secondary">
-                        <a href="https://sourceful.energy/" target="_blank" class="results-secondary-link" data-i18n="read_more_sourceful">
-                            Läs mer om Sourceful Energy →
-                        </a>
+                <!-- Solution Section -->
+                <div class="solution-section">
+                    <h3 class="solution-title" data-i18n="solution_title">Hur du stoppar förlusterna</h3>
+                    <div class="solution-card">
+                        <div class="solution-card-header">
+                            <i data-lucide="zap" class="solution-card-icon"></i>
+                            <h4 class="solution-card-title" data-i18n="solution_card_title">Det enkla sättet att sluta betala nätet för export</h4>
+                        </div>
+                        <div class="solution-card-content">
+                            <div>
+                                <p class="solution-card-text" data-i18n="solution_card_text">
+                                    Med Sourceful Energy behöver du aldrig oroa dig för att betala nätet för att ta din solenergi. När marknadspriserna blir negativa stoppar vår smarta automation omedelbart din export - skyddar dina intäkter och håller din energi där den betyder mest.
+                                </p>
+                                <a href="https://sourceful.energy/store/sourceful-energy-zap" target="_blank" class="solution-cta-button" data-i18n="solution_cta_button">
+                                    Sluta Betala för Export
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -3406,6 +3539,10 @@
                 optimize_installation: "Optimera din anläggning",
                 buy_zap_cta: "🛒 Köp Zap för att stoppa förlusterna",
                 read_more_sourceful: "Läs mer om Sourceful Energy →",
+                solution_title: "Hur du stoppar förlusterna",
+                solution_card_title: "Det enkla sättet att sluta betala nätet för export",
+                solution_card_text: "Med Sourceful Energy behöver du aldrig oroa dig för att betala nätet för att ta din solenergi. När marknadspriserna blir negativa stoppar vår smarta automation omedelbart din export - skyddar dina intäkter och håller din energi där den betyder mest.",
+                solution_cta_button: "Sluta Betala för Export",
                 visualization_title: "Visualisering av din export",
                 chart_total_export: "Total export (kWh)",
                 chart_negative_export: "Export vid negativa priser (kWh)",
@@ -3454,6 +3591,10 @@
                 optimize_installation: "Optimize Your Installation",
                 buy_zap_cta: "🛒 Buy Zap to Stop the Losses",
                 read_more_sourceful: "Learn more about Sourceful Energy →",
+                solution_title: "How to Stop the Losses",
+                solution_card_title: "The Easy Way to Stop Paying the Grid for Exports",
+                solution_card_text: "With Sourceful Energy, you never have to worry about paying the grid to take your solar power. When market prices turn negative, our smart automation instantly halts your exports - protecting your earnings and keeping your energy where it matters most.",
+                solution_cta_button: "Stop Paying to Export",
                 visualization_title: "Visualization of Your Export",
                 chart_total_export: "Total export (kWh)",
                 chart_negative_export: "Export at negative prices (kWh)",
