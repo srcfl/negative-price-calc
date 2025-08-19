@@ -1619,7 +1619,6 @@
             justify-content: space-between;
             padding: 0 0 var(--space-6) 0;
             margin-bottom: 0;
-            border-bottom: 1px solid var(--border);
         }
         
         .header-logo {
@@ -1649,6 +1648,143 @@
             padding: var(--space-6) 0;
             margin-bottom: var(--space-6);
             text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* GitHub-style Grid Background - Desktop Only */
+        @media (min-width: 769px) {
+            .hero-section {
+                position: relative;
+                min-height: 240px;
+                display: flex;
+                align-items: center;
+                padding-bottom: 20px;
+            }
+            
+            .hero-section .header-title {
+                position: relative;
+                z-index: 2;
+                width: 100%;
+            }
+            
+            .hero-section .grid-container {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, 12px);
+                grid-template-rows: repeat(auto-fill, 12px);
+                gap: 2px;
+                padding: 10px;
+                overflow: hidden;
+            }
+            
+            .hero-section .grid-container .grid-square {
+                width: 10px;
+                height: 10px;
+                background: var(--square-color-1);
+                border-radius: 2px;
+                opacity: 0.1; /* Start at low opacity to prevent flash */
+            }
+            
+            /* Gradient overlay for text legibility */
+            .hero-section::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(to right, 
+                    var(--background) 0%, 
+                    var(--background) 40%, 
+                    transparent 70%);
+                z-index: 1;
+                pointer-events: none;
+            }
+        }
+        
+        /* Truly Random Square Animations - Multiple overlapping patterns - SLOWER */
+        .hero-section .grid-container .grid-square:nth-child(17n+1) { animation: pulse1 6.4s ease-in-out infinite 0.1s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+2) { animation: pulse2 9.4s ease-in-out infinite 0.8s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+3) { animation: pulse3 5.6s ease-in-out infinite 1.5s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+4) { animation: pulse4 10.2s ease-in-out infinite 2.2s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+5) { animation: pulse5 7.8s ease-in-out infinite 0.6s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+6) { animation: pulse6 8.6s ease-in-out infinite 1.9s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+7) { animation: pulse7 7.0s ease-in-out infinite 2.7s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+8) { animation: pulse8 9.8s ease-in-out infinite 0.3s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+9) { animation: pulse9 6.2s ease-in-out infinite 1.1s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+10) { animation: pulse10 8.4s ease-in-out infinite 2.4s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+11) { animation: pulse1 7.4s ease-in-out infinite 0.9s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+12) { animation: pulse2 10.6s ease-in-out infinite 1.7s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+13) { animation: pulse3 5.2s ease-in-out infinite 2.3s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+14) { animation: pulse4 8.2s ease-in-out infinite 0.4s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+15) { animation: pulse5 6.6s ease-in-out infinite 1.8s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+16) { animation: pulse6 9.6s ease-in-out infinite 2.1s; }
+        .hero-section .grid-container .grid-square:nth-child(17n+17) { animation: pulse7 5.8s ease-in-out infinite 0.7s; }
+        
+        /* Additional overlapping patterns for more randomness */
+        .hero-section .grid-container .grid-square:nth-child(13n+1) { animation: pulse8 6.8s ease-in-out infinite 1.3s; }
+        .hero-section .grid-container .grid-square:nth-child(13n+7) { animation: pulse9 9.2s ease-in-out infinite 0.2s; }
+        .hero-section .grid-container .grid-square:nth-child(13n+11) { animation: pulse10 5.4s ease-in-out infinite 2.6s; }
+        
+        .hero-section .grid-container .grid-square:nth-child(19n+3) { animation: pulse1 10.0s ease-in-out infinite 1.4s; }
+        .hero-section .grid-container .grid-square:nth-child(19n+8) { animation: pulse2 7.2s ease-in-out infinite 2.8s; }
+        .hero-section .grid-container .grid-square:nth-child(19n+14) { animation: pulse3 8.8s ease-in-out infinite 0.5s; }
+        
+        @keyframes pulse1 { 0%, 100% { opacity: var(--start-opacity); } 50% { opacity: var(--max-opacity); } }
+        @keyframes pulse2 { 0%, 100% { opacity: var(--start-opacity); } 35% { opacity: var(--max-opacity); } 70% { opacity: calc(var(--start-opacity) + 0.1); } }
+        @keyframes pulse3 { 0%, 100% { opacity: var(--start-opacity); } 25% { opacity: var(--max-opacity); } 75% { opacity: var(--start-opacity); } }
+        @keyframes pulse4 { 0%, 100% { opacity: var(--start-opacity); } 40% { opacity: calc(var(--max-opacity) * 0.7); } 80% { opacity: var(--max-opacity); } }
+        @keyframes pulse5 { 0%, 100% { opacity: var(--start-opacity); } 30% { opacity: calc(var(--max-opacity) * 0.6); } 60% { opacity: var(--max-opacity); } 90% { opacity: calc(var(--start-opacity) + 0.05); } }
+        @keyframes pulse6 { 0%, 100% { opacity: var(--start-opacity); } 60% { opacity: calc(var(--max-opacity) * 0.8); } }
+        @keyframes pulse7 { 0%, 100% { opacity: var(--start-opacity); } 20% { opacity: calc(var(--start-opacity) + 0.15); } 45% { opacity: var(--max-opacity); } 80% { opacity: calc(var(--start-opacity) + 0.1); } }
+        @keyframes pulse8 { 0%, 100% { opacity: var(--start-opacity); } 70% { opacity: var(--max-opacity); } }
+        @keyframes pulse9 { 0%, 100% { opacity: var(--start-opacity); } 15% { opacity: calc(var(--max-opacity) * 0.7); } 55% { opacity: calc(var(--start-opacity) + 0.05); } 85% { opacity: var(--max-opacity); } }
+        @keyframes pulse10 { 0%, 100% { opacity: var(--start-opacity); } 40% { opacity: var(--max-opacity); } 65% { opacity: calc(var(--start-opacity) + 0.2); } }
+        
+        /* Square Colors - Theme Aware */
+        :root {
+            --square-color-1: rgba(0, 255, 132, 0.4);
+            --square-color-2: rgba(0, 255, 132, 0.6);
+            --square-color-3: rgba(0, 255, 132, 0.5);
+            --square-color-4: rgba(0, 255, 132, 0.3);
+            --square-color-5: rgba(0, 255, 132, 0.7);
+        }
+        
+        [data-theme="light"] {
+            --square-color-1: rgba(22, 163, 74, 0.4);
+            --square-color-2: rgba(22, 163, 74, 0.6);
+            --square-color-3: rgba(22, 163, 74, 0.5);
+            --square-color-4: rgba(22, 163, 74, 0.3);
+            --square-color-5: rgba(22, 163, 74, 0.7);
+        }
+        
+        /* Hide grid on mobile and stack layout */
+        @media (max-width: 768px) {
+            .hero-section {
+                display: block !important;
+            }
+            
+            .hero-section .header-title {
+                max-width: 100%;
+            }
+            
+            .hero-section .grid-container {
+                display: none;
+            }
+        }
+        
+        /* Respect reduced motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            .hero-section .grid-container [class*="grid-square-"] {
+                animation: none;
+                opacity: 0.3;
+            }
         }
         
         /* Sourceful Logo */
@@ -2505,8 +2641,13 @@
 
         <div class="hero-section">
             <div class="header-title">
-                <h1 data-i18n="title">Stop Paying to Export Solar</h1>
+                <h1 data-i18n="title">Stop Paying to Export Solar to the Grid</h1>
                 <p class="subtitle" data-i18n="subtitle">Negative prices sneak up on solar owners. Our analyzer reveals when your clean energy costs you cash - and points you toward smarter ways to keep the value at home.</p>
+            </div>
+            
+            <!-- Animated grid background for desktop only -->
+            <div class="grid-container" id="grid-container">
+                <!-- Grid squares will be generated by JavaScript -->
             </div>
         </div>
 
@@ -3497,7 +3638,7 @@
         // Language translations
         const translations = {
             sv: {
-                title: "Sluta Betala för att Exportera Solel",
+                title: "Sluta Betala för att Exportera Solel till Nätet",
                 subtitle: "Negativa priser smyger sig på solcellsägare. Vår analysator avslöjar när din rena energi kostar dig pengar - och visar dig smartare sätt att behålla värdet hemma.",
                 production_file_label: "Produktionsdata (CSV eller Excel)",
                 file_click_instruction: "Klicka för att välja din produktionsfil",
@@ -3549,7 +3690,7 @@
                 chart_negative_percentage: "Andel negativ export (%)"
             },
             en: {
-                title: "Stop Paying to Export Solar",
+                title: "Stop Paying to Export Solar to the Grid",
                 subtitle: "Negative prices sneak up on solar owners. Our analyzer reveals when your clean energy costs you cash - and points you toward smarter ways to keep the value at home.",
                 production_file_label: "Production Data (CSV or Excel)",
                 file_click_instruction: "Click to select your production file",
@@ -3736,7 +3877,44 @@
             // Load saved language preference or default to Swedish
             const savedLang = localStorage.getItem('preferredLanguage') || 'sv';
             translatePage(savedLang);
+            
+            // Generate grid
+            generateGrid();
         });
+
+        // Generate GitHub-style grid
+        function generateGrid() {
+            const container = document.getElementById('grid-container');
+            if (!container) return;
+            
+            // Clear existing squares
+            container.innerHTML = '';
+            
+            // Calculate how many squares fit (accounting for padding and safety margin)
+            const containerWidth = container.offsetWidth - 24; // Remove padding + safety margin
+            const containerHeight = container.offsetHeight - 32; // Remove padding + extra safety margin for bottom
+            const squareSize = 12; // 10px square + 2px gap
+            
+            const columns = Math.floor(containerWidth / squareSize);
+            const rows = Math.floor(containerHeight / squareSize);
+            const totalSquares = columns * rows;
+            
+            // Generate squares with random initial opacity
+            for (let i = 0; i < totalSquares; i++) {
+                const square = document.createElement('div');
+                square.className = 'grid-square';
+                // Set random initial opacity between 10% and 50%
+                const randomStartOpacity = 0.1 + Math.random() * 0.4;
+                const randomMaxOpacity = 0.6 + Math.random() * 0.4; // 60% to 100%
+                
+                // Set CSS custom properties for the animation
+                square.style.setProperty('--start-opacity', randomStartOpacity);
+                square.style.setProperty('--max-opacity', randomMaxOpacity);
+                square.style.opacity = randomStartOpacity;
+                
+                container.appendChild(square);
+            }
+        }
         
     </script>
     <!-- Keep Sourceful badge fixed as before -->
