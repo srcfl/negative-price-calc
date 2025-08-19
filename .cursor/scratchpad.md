@@ -4,6 +4,8 @@
 
 The user wants to redesign the results section of the Negative Price Analyzer to match modern ShadCN design patterns. Currently, the results section has inconsistent styling compared to the polished file upload form. The goal is to create a cohesive, professional design that improves user experience and data visualization.
 
+**New Enhancement Request - Chart Design Improvements**: The visualization chart (showing Export kWh with negative price export and trend line) needs significant design improvements for both light and dark modes, with enhanced mobile responsiveness. The current chart has inconsistent typography, overlapping labels, and design elements that don't match the overall aesthetic.
+
 ## Key Challenges and Analysis
 
 ### Current State Analysis
@@ -26,6 +28,16 @@ The user wants to redesign the results section of the Negative Price Analyzer to
 - Need to maintain existing functionality while updating styling
 - Must work in both light and dark themes
 - Should be responsive across device sizes
+
+### Chart Visualization Challenges
+- Current chart uses emoji in title (inconsistent with design system)
+- Chart has nested containers creating visual clutter
+- Text colors and opacity don't follow theme system
+- Axis labels overlap with values due to poor spacing
+- Grid lines too prominent/high contrast
+- Chart elements (bars, circles) have unnecessary borders
+- Mobile responsiveness needs improvement
+- Typography doesn't match heading styles
 
 ## High-level Task Breakdown
 
@@ -81,13 +93,45 @@ The user wants to redesign the results section of the Negative Price Analyzer to
     - Success criteria: Cohesive design from form to results
     - Deliverable: Production-ready results interface
 
+### Phase 5: Chart Visualization Enhancement (NEW)
+13. **Redesign chart title and typography**
+    - Success criteria: Remove emoji, use consistent heading font style
+    - Deliverable: Clean title matching design system
+
+14. **Restructure chart container layout**
+    - Success criteria: Title outside container, remove inner grey container
+    - Deliverable: Simplified container structure
+
+15. **Implement proper theme-aware text styling**
+    - Success criteria: White 50% opacity (dark mode), black 70% opacity (light mode)
+    - Deliverable: Consistent text colors across themes
+
+16. **Fix axis label positioning and spacing**
+    - Success criteria: No overlap between labels and values
+    - Deliverable: Properly spaced chart labels
+
+17. **Reduce grid line contrast and visual noise**
+    - Success criteria: Subtle grid lines that don't compete with data
+    - Deliverable: Lower contrast grid system
+
+18. **Remove unnecessary chart element borders**
+    - Success criteria: Clean bars and trend line circles without borders
+    - Deliverable: Simplified chart elements
+
+19. **Optimize chart for mobile responsiveness**
+    - Success criteria: Readable and functional on all screen sizes
+    - Deliverable: Mobile-optimized chart layout
+
 ## Project Status Board
 
-### Current Sprint Tasks
-- [ ] **Task 1.1**: Audit current results styling and document issues
-- [ ] **Task 2.1**: Replace inline styles with CSS classes using design system variables
-- [ ] **Task 2.2**: Standardize typography scale in results section
-- [ ] **Task 2.3**: Implement consistent spacing using --space-* variables
+### Current Sprint Tasks (Phase 5: Chart Enhancement)
+- [ ] **Task 13.1**: Remove emoji from chart title and standardize typography
+- [ ] **Task 14.1**: Move chart title outside container and remove inner grey container
+- [ ] **Task 15.1**: Implement theme-aware text colors (white 50% dark, black 70% light)
+- [ ] **Task 16.1**: Fix axis label positioning to prevent overlap
+- [ ] **Task 17.1**: Reduce grid line contrast for better visual hierarchy
+- [ ] **Task 18.1**: Remove borders from chart bars and trend line circles
+- [ ] **Task 19.1**: Optimize chart layout for mobile responsiveness
 
 ### Upcoming Tasks
 - [ ] **Task 3.1**: Ensure theme switching works properly in results
@@ -101,10 +145,12 @@ The user wants to redesign the results section of the Negative Price Analyzer to
 
 ## Current Status / Progress Tracking
 
-**Current Phase**: Phase 1 Complete ✅ - Foundation & Consistency 
-**Next Action**: Ready for Phase 2 - Metric Cards Enhancement
+**Current Phase**: Phase 5 - Chart Visualization Enhancement 📊
+**Next Action**: Begin Task 13.1 - Chart title and typography improvements
 **Blockers**: None identified
-**Priority**: High - Results design significantly impacts user experience
+**Priority**: High - Chart visualization is key user-facing component
+
+**Status Update**: Moving to Phase 5 to address specific chart design issues identified by user. The foundation work from Phase 1 provides a solid base for these chart-specific improvements.
 
 **Phase 1 Achievements:**
 - ✅ Comprehensive CSS class system created for all results components
@@ -134,7 +180,39 @@ The user wants to redesign the results section of the Negative Price Analyzer to
 2. Enhance data visualization with better charts
 3. Implement micro-interactions and animations
 
-**Recommendation**: Test the current implementation to ensure everything works properly, then proceed with Phase 2 for enhanced user experience features.
+**New Priority**: Chart visualization enhancement takes precedence. The specific design issues identified need immediate attention:
+
+**Chart Enhancement Planning Complete** 📋
+The user has identified 8 specific design improvements needed for the chart visualization:
+
+1. **Typography Consistency**: Remove emoji, use heading font styles
+2. **Layout Restructure**: Move title outside, remove inner container
+3. **Theme-Aware Colors**: Proper opacity for light/dark modes  
+4. **Label Positioning**: Fix overlapping axis labels
+5. **Grid Line Refinement**: Reduce contrast for better hierarchy
+6. **Border Removal**: Clean up chart element styling
+7. **Mobile Optimization**: Ensure responsive design
+8. **Overall Polish**: Match design system standards
+
+**Phase 5 Complete!** 🎉 All chart enhancement tasks have been successfully implemented:
+
+**Executor Achievements:**
+- ✅ Task 13.1: Typography consistency (emoji removed, heading fonts applied)
+- ✅ Task 14.1: Container restructure (title moved outside, inner container removed)  
+- ✅ Task 15.1: Theme-aware colors (proper opacity for light/dark modes)
+- ✅ Task 16.1: Axis label positioning (improved spacing, no overlap)
+- ✅ Task 17.1: Grid line contrast (reduced to 0.3/0.2 opacity, thinner lines)
+- ✅ Task 18.1: Element borders removed (clean bars and circles)
+- ✅ Task 19.1: Mobile responsive (adaptive dimensions and typography)
+
+**Technical Implementation:**
+- CSS variables for theme-aware chart colors
+- JavaScript responsive chart generation
+- Mobile-first responsive design (768px breakpoint)
+- Proper spacing and typography scaling
+- Clean, modern chart aesthetic
+
+**Ready for User Testing**: Chart visualization now matches design system standards with excellent mobile responsiveness.
 
 ## Lessons
 

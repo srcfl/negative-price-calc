@@ -36,9 +36,9 @@ class AITableReader:
         """Read CSV/XLSX. Try pandas with a few heuristics. If it fails, use AI to infer schema."""
         # Quick path: try known-good CSV/XLSX patterns
         try:
-            if file_path.lower().endswith(('.xlsx', '.xlsm', '.xls')):
+            if file_path.lower().endswith((".xlsx", ".xlsm", ".xls")):
                 # Try header=None, then auto promote first non-empty row
-                df = pd.read_excel(file_path, engine='openpyxl', header=None)
+                df = pd.read_excel(file_path, engine="openpyxl", header=None)
                 df = self._promote_header_if_present(df)
                 return df
             else:
@@ -63,7 +63,9 @@ class AITableReader:
 
         # AI fallback
         if not self.client:
-            raise RuntimeError("AI fallback unavailable: set OPENAI_API_KEY to enable AI-assisted parsing")
+            raise RuntimeError(
+                "AI fallback unavailable: set OPENAI_API_KEY to enable AI-assisted parsing"
+            )
 
         preview = self._read_preview(file_path)
         instruction = (
@@ -98,8 +100,8 @@ class AITableReader:
 
         header_row = int(spec.get("header_row_index", 0))
         # Re-read with header at inferred row
-        if file_path.lower().endswith(('.xlsx', '.xlsm', '.xls')):
-            df = pd.read_excel(file_path, engine='openpyxl', header=header_row)
+        if file_path.lower().endswith((".xlsx", ".xlsm", ".xls")):
+            df = pd.read_excel(file_path, engine="openpyxl", header=header_row)
         else:
             # Try both sep assumptions again with header
             df = None
@@ -120,7 +122,9 @@ class AITableReader:
                     continue
             if df is None:
                 # last resort
-                df = pd.read_csv(file_path, header=header_row, engine="python", on_bad_lines="skip")
+                df = pd.read_csv(
+                    file_path, header=header_row, engine="python", on_bad_lines="skip"
+                )
 
         # If AI specified names, apply
         cols = spec.get("columns")
@@ -131,7 +135,7 @@ class AITableReader:
 
     def _read_preview(self, file_path: str) -> str:
         try:
-            with open(file_path, 'rb') as f:
+            with open(file_path, "rb") as f:
                 data = f.read(self.max_preview_bytes)
             # Try decode variants
             for enc in ("utf-8-sig", "utf-8", "cp1252", "iso-8859-1", "utf-16"):
@@ -157,8 +161,8 @@ class AITableReader:
 
     def _extract_json(self, text: str) -> str:
         # extract first {...} block
-        start = text.find('{')
-        end = text.rfind('}')
+        start = text.find("{")
+        end = text.rfind("}")
         if start != -1 and end != -1 and end > start:
-            return text[start:end+1]
+            return text[start : end + 1]
         return text

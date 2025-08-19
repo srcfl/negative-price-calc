@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Negativa Prisanalyseraren</title>
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" href="/static/images/favicons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/static/images/favicons/favicon.svg" />
+    <link rel="shortcut icon" href="/static/images/favicons/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/images/favicons/apple-touch-icon.png" />
+    <link rel="manifest" href="/static/images/favicons/site.webmanifest" />
+    
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <style>
         /* Import custom fonts */
@@ -1236,35 +1244,79 @@
         }
         
         .visualization-container {
-            margin-top: var(--space-8);
-            background: var(--card);
-            padding: var(--space-6);
+            margin-top: var(--space-4);
+            background: var(--background);
+            padding: 0;
             border-radius: var(--radius-xl);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow-sm);
+            border: none;
+            box-shadow: none;
         }
         
         .visualization-title {
             color: var(--foreground);
-            font-weight: var(--font-bold);
+            font-family: var(--font-heading);
+            font-weight: var(--font-semibold);
             margin-bottom: var(--space-5);
             font-size: var(--text-xl);
+            line-height: var(--leading-tight);
         }
         
         .production-chart {
             width: 100%;
-            height: 350px;
+            height: 370px;
             border: 1px solid var(--border);
-            border-radius: var(--radius);
+            border-radius: var(--radius-xl);
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--muted);
+            background: var(--card);
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+            .production-chart {
+                height: 300px;
+            }
+            
+            .visualization-title {
+                font-size: var(--text-lg);
+                margin-bottom: var(--space-4);
+            }
+            
+            .chart-legend {
+                flex-direction: column;
+                gap: var(--space-3);
+                margin-top: var(--space-3);
+            }
+            
+            .legend-item {
+                gap: var(--space-1);
+            }
+            
+            .legend-text {
+                font-size: var(--text-sm);
+            }
         }
         
         .chart-placeholder {
             text-align: center;
             color: var(--muted-foreground);
+        }
+
+        /* Chart theme-aware colors */
+        :root {
+            --chart-text: hsl(var(--foreground));
+            --chart-muted-text: hsl(var(--muted-foreground));
+            --chart-axis-text: hsl(var(--foreground));
+            --chart-grid: hsl(var(--border));
+        }
+
+        [data-theme="dark"] {
+            --chart-text: hsl(var(--foreground));
+            --chart-muted-text: hsl(var(--muted-foreground));
+            --chart-axis-text: hsl(var(--foreground));
+            --chart-grid: hsl(var(--border));
         }
         
         .chart-legend {
@@ -2524,8 +2576,8 @@
                 </div>
                 
                 <!-- Data Visualization - Moved up after cards -->
+                <h3 class="visualization-title" data-i18n="visualization_title">Visualisering av din export</h3>
                 <div class="visualization-container">
-                    <h3 class="visualization-title" data-i18n="visualization_title">📊 Visualisering av din export</h3>
                     <div id="productionChart" class="production-chart">
                         <div class="chart-placeholder">
                             <div style="font-size: 48px; margin-bottom: 16px;">📊</div>
@@ -2834,6 +2886,26 @@
             `;
         }
 
+        function getChartColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            
+            if (isDark) {
+                return {
+                    text: 'rgba(255, 255, 255, 0.9)',
+                    mutedText: 'rgba(255, 255, 255, 0.7)',
+                    axisText: 'rgba(255, 255, 255, 0.9)',
+                    gridLine: 'rgba(255, 255, 255, 0.2)'
+                };
+            } else {
+                return {
+                    text: 'rgba(0, 0, 0, 0.8)',
+                    mutedText: 'rgba(0, 0, 0, 0.6)',
+                    axisText: 'rgba(0, 0, 0, 0.8)',
+                    gridLine: 'rgba(0, 0, 0, 0.15)'
+                };
+            }
+        }
+
         function generateProductionChart(analysis) {
             const aggregates = analysis.aggregates;
             if (!aggregates || !aggregates.monthly) {
@@ -2848,10 +2920,16 @@
             console.log('Monthly data structure:', monthlyData[0]);
             console.log('All monthly data:', monthlyData);
             
-            // Chart dimensions - wider for dual axis
-            const width = 900;
-            const height = 300;
-            const margin = { top: 30, right: 80, bottom: 50, left: 70 };
+            // Chart dimensions - responsive
+            const chartContainer = document.getElementById('productionChart');
+            const containerWidth = chartContainer.offsetWidth || 900;
+            const isMobile = window.innerWidth <= 768;
+            
+            const width = Math.min(containerWidth - 20, isMobile ? 380 : 1100);
+            const height = isMobile ? 280 : 320;
+            const margin = isMobile 
+                ? { top: 30, right: 60, bottom: 50, left: 70 }
+                : { top: 40, right: 90, bottom: 60, left: 100 };
             const chartWidth = width - margin.left - margin.right;
             const chartHeight = height - margin.top - margin.bottom;
             
@@ -2901,6 +2979,9 @@
             
             if (maxValue === 0) return; // No data to show
             
+            // Get theme-aware colors
+            const colors = getChartColors();
+            
             // Create SVG
             let svgContent = `
                 <svg width="${width}" height="${height}" style="background: var(--card);">
@@ -2910,9 +2991,10 @@
             for (let i = 0; i <= 5; i++) {
                 const y = margin.top + (chartHeight / 5) * i;
                 const value = Math.round(maxValue * (1 - i / 5));
+                const fontSize = isMobile ? 9 : 11;
                 svgContent += `
-                    <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" stroke="#E9ECEF" stroke-width="1"/>
-                    <text x="${margin.left - 10}" y="${y + 4}" text-anchor="end" font-size="12" fill="#6C757D">${value} kWh</text>`;
+                    <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" stroke="${colors.gridLine}" stroke-width="1"/>
+                    <text x="${margin.left - 20}" y="${y + 4}" text-anchor="end" font-size="${fontSize}" fill="${colors.axisText}">${value} kWh</text>`;
             }
             
             // Add percentage scale on right axis
@@ -2920,8 +3002,9 @@
                 const y = margin.top + (chartHeight / 5) * i;
                 const percentage = Math.round(maxPercentage * (1 - i / 5));
                 if (!isNaN(percentage) && isFinite(percentage)) {
+                    const fontSize = isMobile ? 9 : 11;
                     svgContent += `
-                        <text x="${width - margin.right + 10}" y="${y + 4}" text-anchor="start" font-size="12" fill="#2F4A66">${percentage}%</text>`;
+                        <text x="${width - margin.right + 15}" y="${y + 4}" text-anchor="start" font-size="${fontSize}" fill="${colors.axisText}">${percentage}%</text>`;
                 }
             }
             
@@ -2951,7 +3034,7 @@
                 if (exportHeight > 0) {
                     svgContent += `
                         <rect x="${x}" y="${exportY}" width="${barWidth}" height="${exportHeight}" 
-                              fill="#00FF84" stroke="white" stroke-width="1" opacity="0.7"/>
+                              fill="#00FF84" opacity="0.7"/>
                     `;
                 }
                 
@@ -2959,7 +3042,7 @@
                 if (negativeHeight > 0) {
                     svgContent += `
                         <rect x="${x}" y="${negativeY}" width="${barWidth}" height="${negativeHeight}" 
-                              fill="#DC3545" stroke="white" stroke-width="1" opacity="1.0"/>
+                              fill="#DC3545" opacity="1.0"/>
                     `;
                 }
                 
@@ -2970,14 +3053,15 @@
                 // Percentage dot - show for all months, even 0%
                 if (!isNaN(percentY) && isFinite(percentY)) {
                     svgContent += `
-                        <circle cx="${xCenter}" cy="${percentY}" r="4" fill="#2F4A66" stroke="white" stroke-width="2"/>
+                        <circle cx="${xCenter}" cy="${percentY}" r="4" fill="#2F4A66"/>
                     `;
                 }
                 
                 // Month label
                 const monthName = new Date(monthData.month + '-01').toLocaleDateString('sv-SE', { month: 'short' });
+                const monthFontSize = isMobile ? 9 : 11;
                 svgContent += `
-                    <text x="${xCenter}" y="${height - margin.bottom + 20}" text-anchor="middle" font-size="12" fill="#495057">${monthName}</text>
+                    <text x="${xCenter}" y="${height - margin.bottom + 15}" text-anchor="middle" font-size="${monthFontSize}" fill="${colors.text}">${monthName}</text>
                 `;
             });
             
@@ -3000,10 +3084,12 @@
             const exportLabel = currentLanguage === 'sv' ? 'Export (kWh)' : 'Export (kWh)';
             const percentageLabel = currentLanguage === 'sv' ? 'Andel negativ (%)' : 'Negative Share (%)';
             
+            const axisLabelSize = isMobile ? 10 : 12;
+            const axisSubLabelSize = isMobile ? 9 : 11;
             svgContent += `
-                    <text x="${margin.left + chartWidth/2}" y="${height - 5}" text-anchor="middle" font-size="14" font-weight="600" fill="#2F4A66">${monthLabel}</text>
-                    <text x="25" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="13" font-weight="600" fill="#00FF84" transform="rotate(-90, 25, ${margin.top + chartHeight/2})">${exportLabel}</text>
-                    <text x="${width - 25}" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="13" font-weight="600" fill="#2F4A66" transform="rotate(90, ${width - 25}, ${margin.top + chartHeight/2})">${percentageLabel}</text>
+                    <text x="${margin.left + chartWidth/2}" y="${height - 8}" text-anchor="middle" font-size="${axisLabelSize}" font-weight="600" fill="${colors.text}">${monthLabel}</text>
+                    <text x="20" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="${axisSubLabelSize}" font-weight="600" fill="${colors.text}" transform="rotate(-90, 20, ${margin.top + chartHeight/2})">${exportLabel}</text>
+                    <text x="${width - 30}" y="${margin.top + chartHeight/2}" text-anchor="middle" font-size="${axisSubLabelSize}" font-weight="600" fill="${colors.text}" transform="rotate(90, ${width - 30}, ${margin.top + chartHeight/2})">${percentageLabel}</text>
                 </svg>
             `;
             
@@ -3066,7 +3152,7 @@
                 optimize_installation: "Optimera din anläggning",
                 buy_zap_cta: "🛒 Köp Zap för att stoppa förlusterna",
                 read_more_sourceful: "Läs mer om Sourceful Energy →",
-                visualization_title: "📆 Visualisering av din export",
+                visualization_title: "Visualisering av din export",
                 chart_total_export: "Total export (kWh)",
                 chart_negative_export: "Export vid negativa priser (kWh)",
                 chart_negative_percentage: "Andel negativ export (%)"
@@ -3114,7 +3200,7 @@
                 optimize_installation: "Optimize Your Installation",
                 buy_zap_cta: "🛒 Buy Zap to Stop the Losses",
                 read_more_sourceful: "Learn more about Sourceful Energy →",
-                visualization_title: "📆 Visualization of Your Export",
+                visualization_title: "Visualization of Your Export",
                 chart_total_export: "Total export (kWh)",
                 chart_negative_export: "Export at negative prices (kWh)",
                 chart_negative_percentage: "Share of negative export (%)"
@@ -3210,6 +3296,11 @@
             
             // Store theme preference
             localStorage.setItem('preferredTheme', theme);
+            
+            // Regenerate chart with new theme colors if analysis results are available
+            if (window.analysisResults && window.analysisResults.analysis) {
+                generateProductionChart(window.analysisResults.analysis);
+            }
             
             // Debug log
             console.log('Theme set to:', theme);

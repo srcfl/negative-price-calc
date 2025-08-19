@@ -17,8 +17,4 @@ from .csv_format_detector_fallback import CSVFormatDetectorFallback
 from .csv_format_module import CSVFormatDetector
 from .ai_explainer import AIExplainer
 
-__all__ = [
-    "CSVFormatDetectorFallback",
-    "CSVFormatDetector",
-    "AIExplainer"
-]
+__all__ = ["CSVFormatDetectorFallback", "CSVFormatDetector", "AIExplainer"]

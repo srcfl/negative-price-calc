@@ -10,9 +10,4 @@ from .price_fetcher import PriceFetcher
 from .production_loader import ProductionLoader
 from .db_manager import PriceDatabaseManager
 
-__all__ = [
-    'PriceAnalyzer',
-    'PriceFetcher',
-    'ProductionLoader',
-    'PriceDatabaseManager'
-]
+__all__ = ["PriceAnalyzer", "PriceFetcher", "ProductionLoader", "PriceDatabaseManager"]
