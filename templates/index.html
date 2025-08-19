@@ -2660,13 +2660,14 @@
         <div class="card section">
             <form id="analysisForm">
                 <div class="form-group">
-                    <label for="production_file" class="form-label" data-i18n="production_file_label">Produktionsdata (CSV eller Excel)</label>
+                    <label for="production_file" class="form-label" data-i18n="production_file_label">Solcellsproduktionsdata</label>
+                    <div class="text-sm text-muted-foreground mb-3" data-i18n="production_file_help">Du kan ladda ner detta från ditt elbolag</div>
                     <div class="file-upload" onclick="document.getElementById('production_file').click()">
                         <input type="file" id="production_file" name="production_file" accept=".csv,.xlsx,.xls" required>
                         <div class="upload-icon">
                             <i data-lucide="cloud-upload"></i>
                         </div>
-                        <p class="text-base font-medium" data-i18n="file_click_instruction">Klicka för att välja din produktionsfil</p>
+                        <p class="text-base font-medium" data-i18n="file_click_instruction">Klicka för att välja din solcellsproduktionsfil</p>
                         <div class="text-sm text-muted-foreground mt-2" data-i18n="file_drag_instruction">Eller dra och släpp din CSV/Excel-fil här</div>
                         <div class="selected-file text-sm font-medium text-primary mt-3" id="selectedFile"></div>
                     </div>
@@ -3646,8 +3647,9 @@
             sv: {
                 title: "Sluta Betala för att Exportera Solel till Nätet",
                 subtitle: "Negativa priser smyger sig på solcellsägare. Vår analysator avslöjar när din rena energi kostar dig pengar - och visar dig smartare sätt att behålla värdet hemma.",
-                production_file_label: "Produktionsdata (CSV eller Excel)",
-                file_click_instruction: "Klicka för att välja din produktionsfil",
+                production_file_label: "Solcellsproduktionsdata",
+                production_file_help: "Du kan ladda ner detta från ditt elbolag",
+                file_click_instruction: "Klicka för att välja din solcellsproduktionsfil",
                 file_drag_instruction: "Eller dra och släpp din CSV/Excel-fil här",
                 area_label: "Svenskt elområde",
                 area_se1: "SE_1 - Norra Sverige (Luleå)",
@@ -3698,8 +3700,9 @@
             en: {
                 title: "Stop Paying to Export Solar to the Grid",
                 subtitle: "Negative prices sneak up on solar owners. Our analyzer reveals when your clean energy costs you cash - and points you toward smarter ways to keep the value at home.",
-                production_file_label: "Production Data (CSV or Excel)",
-                file_click_instruction: "Click to select your production file",
+                production_file_label: "Solar Production Data",
+                production_file_help: "You can download this from your utility company",
+                file_click_instruction: "Click to select your solar production file",
                 file_drag_instruction: "Or drag and drop your CSV/Excel file here",
                 area_label: "Swedish Electricity Area",
                 area_se1: "SE_1 - Northern Sweden (Luleå)",
