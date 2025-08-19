@@ -1263,7 +1263,7 @@
         
         .production-chart {
             width: 100%;
-            height: 370px;
+            height: 480px;
             border: 1px solid var(--border);
             border-radius: var(--radius-xl);
             display: flex;
@@ -1276,7 +1276,7 @@
 
         @media (max-width: 768px) {
             .production-chart {
-                height: 300px;
+                height: 400px;
             }
             
             .visualization-title {
@@ -1348,7 +1348,7 @@
         }
         
         .legend-blue {
-            background: #2F4A66;
+            background: #6b7280;
         }
         
         .legend-text {
@@ -2891,10 +2891,10 @@
             
             if (isDark) {
                 return {
-                    text: 'rgba(255, 255, 255, 0.9)',
-                    mutedText: 'rgba(255, 255, 255, 0.7)',
-                    axisText: 'rgba(255, 255, 255, 0.9)',
-                    gridLine: 'rgba(255, 255, 255, 0.2)'
+                    text: '#868686',
+                    mutedText: '#868686',
+                    axisText: '#868686',
+                    gridLine: '#404040'
                 };
             } else {
                 return {
@@ -2926,7 +2926,7 @@
             const isMobile = window.innerWidth <= 768;
             
             const width = Math.min(containerWidth - 20, isMobile ? 380 : 1100);
-            const height = isMobile ? 280 : 320;
+            const height = isMobile ? 375 : 455;
             const margin = isMobile 
                 ? { top: 30, right: 60, bottom: 50, left: 70 }
                 : { top: 40, right: 90, bottom: 60, left: 100 };
@@ -3053,7 +3053,7 @@
                 // Percentage dot - show for all months, even 0%
                 if (!isNaN(percentY) && isFinite(percentY)) {
                     svgContent += `
-                        <circle cx="${xCenter}" cy="${percentY}" r="4" fill="#2F4A66"/>
+                        <circle cx="${xCenter}" cy="${percentY}" r="4" fill="#6b7280"/>
                     `;
                 }
                 
@@ -3074,7 +3074,7 @@
                 
                 if (validPoints.length > 1) {
                     svgContent += `
-                        <polyline points="${validPoints.join(' ')}" stroke="#2F4A66" stroke-width="3" fill="none" opacity="1.0"/>
+                        <polyline points="${validPoints.join(' ')}" stroke="#6b7280" stroke-width="3" fill="none" opacity="1.0"/>
                     `;
                 }
             }
