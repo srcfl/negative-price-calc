@@ -18,6 +18,7 @@ from core.price_fetcher import PriceFetcher
 from core.production_loader import ProductionLoader
 from cli.main import build_storytelling_payload
 from utils.ai_explainer import AIExplainer
+from utils.hubspot_client import log_email_to_hubspot
 
 # Load environment variables
 load_dotenv()
@@ -149,42 +150,57 @@ def analyze():
         return jsonify({'success': False, 'error': f'Analysis failed: {str(e)}'})
 
 def log_analysis_request(request, filename, area, email):
-    """Log analysis requests for debugging and analytics"""
+    """Log analysis requests to Hubspot with minimal data collection"""
     try:
-        log_entry = {
+        # Prepare metadata for Hubspot contact
+        metadata = {
             'timestamp': datetime.now().isoformat(),
             'filename': filename,
             'area': area,
-            'email': email,
-            'ip': request.remote_addr,
-            'user_agent': request.headers.get('User-Agent', ''),
-            'file_size': request.content_length
+            'analyzed_at': datetime.now().isoformat()
         }
         
-        # Add geolocation if provided
-        if request.form.get('latitude'):
-            log_entry['location'] = {
-                'latitude': request.form.get('latitude'),
-                'longitude': request.form.get('longitude'),
-                'accuracy': request.form.get('location_accuracy')
+        # Send email to Hubspot list
+        hubspot_success = log_email_to_hubspot(email, metadata)
+        
+        if hubspot_success:
+            print(f"Successfully added email {email} to Hubspot list")
+        else:
+            print(f"Failed to add email {email} to Hubspot - falling back to local logging")
+            
+            # Fallback: minimal local logging (email only, no IP/location)
+            log_entry = {
+                'timestamp': datetime.now().isoformat(),
+                'filename': filename,
+                'area': area,
+                'email': email,
+                'hubspot_failed': True
             }
-        
-        # Add browser info if provided
-        if request.form.get('browser_info'):
-            try:
-                log_entry['browser_info'] = json.loads(request.form.get('browser_info'))
-            except:
-                pass
-        
-        # Write to log file
-        log_file = Path('data/email_logs.txt')
-        log_file.parent.mkdir(exist_ok=True)
-        
-        with open(log_file, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
+            
+            log_file = Path('data/email_logs.txt')
+            log_file.parent.mkdir(exist_ok=True)
+            
+            with open(log_file, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
             
     except Exception as e:
         print(f"Failed to log analysis request: {e}")
+        
+        # Emergency fallback: basic local logging
+        try:
+            log_entry = {
+                'timestamp': datetime.now().isoformat(),
+                'email': email,
+                'error': str(e)
+            }
+            
+            log_file = Path('data/email_logs.txt')
+            log_file.parent.mkdir(exist_ok=True)
+            
+            with open(log_file, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
+        except:
+            pass  # Silent fail - analysis should continue
 
 @app.route('/health')
 def health():

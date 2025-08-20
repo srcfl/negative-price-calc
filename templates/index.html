@@ -493,6 +493,66 @@
             box-shadow: 0 0 0 2px var(--ring);
         }
         
+        .checkbox-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-2);
+        }
+        
+        .form-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 1px solid var(--input-border);
+            border-radius: var(--radius-sm);
+            background-color: var(--input);
+            cursor: pointer;
+            margin-top: 2px;
+            flex-shrink: 0;
+            appearance: none;
+            transition: all 0.2s ease;
+        }
+        
+        .form-checkbox:checked {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23000000' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='m13.854 3.646-6.207 6.207-2.854-2.854a.5.5 0 0 0-.707.708l3.207 3.207a.5.5 0 0 0 .708 0l6.561-6.561a.5.5 0 0 0-.708-.707z'/%3e%3c/svg%3e");
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .form-checkbox:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--ring);
+        }
+        
+        .checkbox-label {
+            font-family: var(--font-body);
+            font-size: var(--text-sm);
+            color: var(--foreground);
+            cursor: pointer;
+            line-height: 1.5;
+            margin: 0;
+        }
+        
+        .privacy-link {
+            color: var(--primary);
+            text-decoration: underline;
+            text-decoration-color: var(--primary);
+            text-underline-offset: 2px;
+            transition: all 0.2s ease;
+        }
+        
+        .privacy-link:hover {
+            color: var(--primary-foreground);
+            text-decoration-color: var(--primary-foreground);
+        }
+        
+        .privacy-consent-label {
+            text-transform: none !important;
+        }
+        
         .form-select {
             width: 100%;
             padding: var(--space-3) var(--space-4);
@@ -2662,7 +2722,7 @@
                 <div class="form-group">
                     <label for="production_file" class="form-label" data-i18n="production_file_label">Solcellsproduktionsdata</label>
                     <div class="text-sm text-muted-foreground mb-3" data-i18n="production_file_help">Du kan ladda ner detta från ditt elbolag</div>
-                    <div class="file-upload" onclick="document.getElementById('production_file').click()">
+                    <div class="file-upload" id="fileUploadArea">
                         <input type="file" id="production_file" name="production_file" accept=".csv,.xlsx,.xls" required>
                         <div class="upload-icon">
                             <i data-lucide="cloud-upload"></i>
@@ -2692,7 +2752,18 @@
                     <input type="email" id="userEmailUpfront" name="email" class="form-input" required 
                            placeholder="din.epost@exempel.se" data-i18n-placeholder="email_placeholder">
                     <div class="text-sm text-muted-foreground mt-2">
-                        <span data-i18n="email_disclaimer">Vi använder din e-post för att spara analysen åt dig. Inga spam eller reklam.</span>
+                        <span data-i18n="email_disclaimer">Vi använder din e-post för att spara analysen åt dig och för att hålla dig uppdaterad om våra tjänster. Inga spam.</span>
+                    </div>
+                </div>
+
+                <!-- Privacy Policy Consent -->
+                <div class="form-group" style="margin-top: var(--space-4);">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="privacyConsent" name="privacy_consent" required class="form-checkbox">
+                        <label for="privacyConsent" class="checkbox-label privacy-consent-label">
+                            <span data-i18n="privacy_consent_text">jag har läst och godkänner</span>
+                            <a href="https://docs.sourceful.energy/sourceful-terms/privacy/" target="_blank" rel="noopener noreferrer" class="privacy-link" data-i18n="privacy_policy_link">integritetspolicyn</a>
+                        </label>
                     </div>
                 </div>
 
@@ -2793,27 +2864,21 @@
             e.preventDefault();
         });
 
-        // Get user geolocation if available
-        let userLocation = null;
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    userLocation = {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                        accuracy: position.coords.accuracy
-                    };
-                },
-                function(error) {
-                    console.log('Geolocation not available:', error.message);
-                },
-                { timeout: 5000, maximumAge: 300000 } // 5 second timeout, cache for 5 minutes
-            );
-        }
+        // File upload area click handler
+        document.getElementById('fileUploadArea').addEventListener('click', function() {
+            document.getElementById('production_file').click();
+        });
 
         // Form submission
         document.getElementById('analysisForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Validate privacy consent
+            const privacyConsent = document.getElementById('privacyConsent');
+            if (!privacyConsent.checked) {
+                showError(translations[currentLanguage].privacy_consent_required);
+                return;
+            }
             
             const btn = document.getElementById('analyzeBtn');
             const resultsSection = document.getElementById('resultsSection');
@@ -2831,24 +2896,6 @@
             
             try {
                 const formData = new FormData(this);
-                
-                // Add geolocation data if available
-                if (userLocation) {
-                    formData.append('latitude', userLocation.latitude);
-                    formData.append('longitude', userLocation.longitude);
-                    formData.append('location_accuracy', userLocation.accuracy);
-                }
-                
-                // Add browser info
-                formData.append('browser_info', JSON.stringify({
-                    userAgent: navigator.userAgent,
-                    language: navigator.language,
-                    platform: navigator.platform,
-                    cookieEnabled: navigator.cookieEnabled,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    screenResolution: `${screen.width}x${screen.height}`,
-                    windowSize: `${window.innerWidth}x${window.innerHeight}`
-                }));
                 
                 const response = await fetch('/analyze', {
                     method: 'POST',
@@ -3660,7 +3707,10 @@
                 area_se4: "SE_4 - Södra Sverige (Malmö)",
                 email_label: "Din e-postadress (krävs för AI-analys)",
                 email_placeholder: "din.epost@exempel.se",
-                email_disclaimer: "Vi använder din e-post för att spara analysen åt dig. Inga spam eller reklam.",
+                email_disclaimer: "Vi kan använda din e-post för att hålla dig uppdaterad om våra tjänster. Inga spam. Du kan avsluta prenumerationen när som helst.",
+                privacy_consent_text: "Jag har läst och godkänner",
+                privacy_policy_link: "integritetspolicyn",
+                privacy_consent_required: "Du måste godkänna integritetspolicyn för att fortsätta.",
                 analyze_button: "Analysera",
                 analyzing: "Analyserar...",
                 results_title: "Analysresultat",
@@ -3714,7 +3764,10 @@
                 area_se4: "SE_4 - Southern Sweden (Malmö)",
                 email_label: "Your email address",
                 email_placeholder: "your.email@example.com",
-                email_disclaimer: "We use your email to save the analysis for you. No spam or ads.",
+                email_disclaimer: "We may use your email to keep you updated about our services. No spam. You can unsubscribe at any time.",
+                privacy_consent_text: "I have read and agree to the",
+                privacy_policy_link: "privacy policy",
+                privacy_consent_required: "You must agree to the privacy policy to continue.",
                 analyze_button: "Analyse",
                 analyzing: "Analyzing...",
                 results_title: "Analysis Results",
