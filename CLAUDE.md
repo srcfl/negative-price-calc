@@ -62,7 +62,7 @@ This is an electricity price analysis tool focused on negative price detection a
 ### Key Components
 
 **Data Layer:**
-- `core/price_fetcher.py` - ENTSO-E API integration with SQLite caching
+- `core/price_fetcher.py` - Sourceful API integration with SQLite caching (no API key required)
 - `core/production_loader.py` - CSV/Excel production data loader with AI-assisted parsing
 - `core/db_manager.py` - SQLite database management for price data caching
 
@@ -95,9 +95,10 @@ This is an electricity price analysis tool focused on negative price detection a
 ### Environment Configuration
 
 Required environment variables in `.env`:
-- `ENTSOE_API_KEY` - Required for ENTSO-E price data
 - `OPENAI_API_KEY` - Required for AI features
 - `DATABASE_PATH` - Optional, defaults to `data/price_data.db`
+
+Note: Price data is fetched from Sourceful API which requires no API key.
 
 ### File Processing Patterns
 
@@ -118,9 +119,9 @@ The CLI generates structured JSON with these main sections:
 
 ### API Integration Notes
 
-- **ENTSO-E API**: Cached in SQLite to minimize API calls
+- **Sourceful API**: Day-ahead electricity prices for 39 European areas, cached in SQLite to minimize API calls
 - **OpenAI API**: Uses direct HTTP requests, configurable model
-- **Area codes**: Normalized from various formats (SE1, SE_1, SE-1 all map to SE_1)
+- **Area codes**: Normalized from various formats (SE1, SE_1, SE-1 all map to SE1)
 
 ### Testing Strategy
 

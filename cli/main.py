@@ -15,11 +15,22 @@ def _to_local_utc(index: pd.DatetimeIndex) -> tuple[pd.DatetimeIndex, pd.Datetim
     """Return (ts_local_europe_stockholm, ts_utc) aligned to hour starts."""
     idx = pd.DatetimeIndex(index)
     if idx.tz is None:
-        local = idx.tz_localize("Europe/Stockholm")
+        # Handle DST ambiguity by using False for ambiguous times (use standard time)
+        try:
+            local = idx.tz_localize("Europe/Stockholm", ambiguous=False, nonexistent='shift_forward')
+        except:
+            # If that fails, try with 'NaT' for ambiguous times
+            local = idx.tz_localize("Europe/Stockholm", ambiguous='NaT', nonexistent='shift_forward')
     else:
         # assume already tz-aware; convert to Europe/Stockholm first for consistency
         local = idx.tz_convert("Europe/Stockholm")
-    local = local.floor("h")
+    
+    # Handle floor operation with DST considerations
+    try:
+        local = local.floor("h", ambiguous=False, nonexistent='shift_forward')
+    except:
+        local = local.floor("h", ambiguous='NaT', nonexistent='shift_forward')
+    
     utc = local.tz_convert("UTC")
     return local, utc
 
@@ -282,18 +293,78 @@ def build_storytelling_payload(aligned: pd.DataFrame, currency: str, rate_sek_pe
             'assumptions': 'Value(self-consumption) = (spot + energy_tax + transmission_fee) * (1+VAT); export value = spot only.'
         }
 
+    # Calculate additional pain-focused metrics
+    negative_production_days = int(df.loc[df['is_producing'] & df['is_negative_price'], 'day'].nunique())
+    negative_energy_percentage = (negative_energy_kwh / production_kwh * 100.0) if production_kwh > 0 else 0.0
+    
     hero = {
-        'hours_total': hours_total,
-        'hours_producing': hours_producing,
-        'hours_negative_total': hours_negative_total,
-        'hours_negative_during_production': hours_negative_during_prod,
-        'share_non_positive_during_production_pct': nonpos_share,
-        'production_kwh': production_kwh,
-        'revenue_sek': revenue_total_sek,
-        'negative_value_sek': negative_value_sek,
-        'realized_price_wavg_sek_per_kwh': wavg_price,
-        'simple_average_price_sek_per_kwh': simple_avg,
-        'timing_discount_pct': timing_discount_pct,
+        # LEAD WITH THE PAIN - Export losses during negative prices
+        'export_förluster': {
+            'timmar_som_kostat_dig': hours_negative_during_prod,
+            'kwh_exporterat_med_förlust': round(negative_energy_kwh, 1),
+            'andel_olönsam_export_pct': round(negative_energy_percentage, 1),
+            'kostnad_negativ_export_sek': round(negative_value_sek, 0),
+            'beskrivning': 'DET HAR KOSTAT DIG - Export under negativa priser ger förlust istället för vinst'
+        },
+        
+        # Core production metrics with Swedish labels
+        'produktion': {
+            'total_kwh': round(production_kwh, 1),
+            'totala_intakter_sek': round(revenue_total_sek, 0),
+            'genomsnittspris_erhållet_sek_per_kwh': round(wavg_price, 3),
+            'enkelt_snitt_pris_sek_per_kwh': round(simple_avg, 3),
+            'timing_förlust_pct': round(timing_discount_pct, 1)
+        },
+        
+        # Time analysis with Swedish labels
+        'tidsanalys': {
+            'totala_timmar': hours_total,
+            'produktionstimmar': hours_producing,
+            'negativa_timmar_totalt': hours_negative_total,
+            'negativa_timmar_under_produktion': hours_negative_during_prod,
+            'andel_noll_eller_negativa_timmar_pct': round(nonpos_share, 1)
+        },
+        
+        # Solution potential (prep for Zap positioning)
+        'lösningspotential': {
+            'möjlig_besparing_med_prisgolv_sek': round(revenue_if_curtailed - revenue_total_sek, 0),
+            'energi_som_kan_pausas_kwh': round(negative_energy_kwh, 1),
+            'beskrivning': 'Med smart styrning kan du undvika att exportera när priserna är negativa'
+        },
+        
+        # ZAP SOLUTION POSITIONING - Focus on problem identification only
+        'zap_lösning': {
+            'problemet': f'Dina solpaneler producerade el under {hours_negative_during_prod} negativa timmar',
+            'produktion_under_negativa_priser': {
+                'timmar': hours_negative_during_prod,
+                'kwh': round(negative_energy_kwh, 1),
+                'dagar_drabbade': negative_production_days,
+                'beskrivning': 'Denna energi gav ingen intäkt eller kostade pengar att exportera'
+            },
+            'lösningen': 'Zap kan automatiskt pausa exporten när priserna blir negativa',
+            'extra_fördelar': [
+                'Förberedd för kommande effekttariffer i Sverige',
+                'Kan styra andra förbrukare via Modbus TCP',
+                'P1-läsare med smart kontrollfunktion'
+            ],
+            'call_to_action': 'Sluta producera el gratis när priserna är negativa'
+        },
+        
+        # Keep original technical metrics for compatibility but move to end
+        'tekniska_mått': {
+            'hours_total': hours_total,
+            'hours_producing': hours_producing,
+            'hours_negative_total': hours_negative_total,
+            'hours_negative_during_production': hours_negative_during_prod,
+            'share_non_positive_during_production_pct': nonpos_share,
+            'production_kwh': production_kwh,
+            'revenue_sek': revenue_total_sek,
+            'negative_value_sek': negative_value_sek,
+            'realized_price_wavg_sek_per_kwh': wavg_price,
+            'simple_average_price_sek_per_kwh': simple_avg,
+            'timing_discount_pct': timing_discount_pct,
+        },
+        
         'counterfactuals': {
             'curtail_at_price_floor_sek_per_kwh': 0.0,
             'revenue_if_curtailed_sek': revenue_if_curtailed,
@@ -882,7 +953,10 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 def cmd_inspect_production(path: str):
     loader = ProductionLoader()
     try:
-        df, gran = loader.load_production(path, use_llm=False)
+        # Enable LLM parsing if OpenAI API key is available
+        import os
+        use_llm = bool(os.getenv('OPENAI_API_KEY'))
+        df, gran = loader.load_production(path, use_llm=use_llm)
     except FileNotFoundError:
         print(f"File not found: {path}")
         return
@@ -950,7 +1024,7 @@ def main():
     # Cost & system parameters
     p_analyze.add_argument("--energy-tax", type=float, help="Energy tax (SEK per kWh) for self-consumption valuation")
     p_analyze.add_argument("--transmission-fee", type=float, help="Transmission/network fee (SEK per kWh)")
-    p_analyze.add_argument("--vat", type=float, help="VAT rate (e.g. 25 for 25%)")
+    p_analyze.add_argument("--vat", type=float, help="VAT rate (e.g. 25 for 25%%)")
     p_analyze.add_argument("--battery-capacities", help="Comma list of battery capacities in kWh (default 10,15,20)")
     p_analyze.add_argument("--battery-power-kw", type=float, help="Battery charge/discharge power limit in kW (default 5.0)")
     p_analyze.add_argument("--battery-decision-basis", choices=['spot','spot_plus_fees'], help="Basis for battery charge/discharge decisions (spot or spot_plus_fees)")
@@ -970,7 +1044,7 @@ def main():
     p_merge.add_argument("--json-artifacts", help="Directory to write large excluded sections (parquet). Adds artifact references to JSON.")
     p_merge.add_argument("--energy-tax", type=float, help="Energy tax (SEK per kWh) for self-consumption valuation")
     p_merge.add_argument("--transmission-fee", type=float, help="Transmission/network fee (SEK per kWh)")
-    p_merge.add_argument("--vat", type=float, help="VAT rate (e.g. 25 for 25%)")
+    p_merge.add_argument("--vat", type=float, help="VAT rate (e.g. 25 for 25%%)")
     p_merge.add_argument("--battery-capacities", help="Comma list of battery capacities in kWh (default 10,15,20)")
     p_merge.add_argument("--battery-power-kw", type=float, help="Battery charge/discharge power limit in kW (default 5.0)")
     p_merge.add_argument("--battery-decision-basis", choices=['spot','spot_plus_fees'], help="Basis for battery charge/discharge decisions (spot or spot_plus_fees)")
@@ -985,7 +1059,10 @@ def main():
         # Load production and auto-detect granularity
         loader = ProductionLoader()
         try:
-            prod_df, gran = loader.load_production(args.path, use_llm=False)
+            # Enable LLM parsing if OpenAI API key is available
+            import os
+            use_llm = bool(os.getenv('OPENAI_API_KEY'))
+            prod_df, gran = loader.load_production(args.path, use_llm=use_llm)
         except FileNotFoundError:
             print(f"File not found: {args.path}")
             return

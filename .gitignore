@@ -25,5 +25,9 @@ wheels/
 .cache/
 *.log
 
+# User data and tracking (not for open source)
+leads.csv
+data/email_logs.txt
+
 # Claude Code specific
 .claude/

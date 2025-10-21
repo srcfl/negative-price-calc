@@ -11,13 +11,14 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "openai>=1.0.0",
     "chardet>=5.0.0",
-    "entsoe-py>=0.6.9",
     "openpyxl>=3.1.2",
+    "flask>=3.0.0",
 ]
 
 [project.scripts]
 negative-price-calc = "main:main"
 se-cli = "cli.main:main"
+webapp = "app:app"
 
 [build-system]
 requires = ["hatchling"]

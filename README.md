@@ -1,263 +1,243 @@
-# Negative Price Calculator
+# ⚡ Negative Price Calculator
 
-En Python-applikation för att analysera elpriser och solcellsproduktion, med fokus på negativa priser och kostnadskalkylering.
+A simple web application to analyze electricity prices and solar production data, with focus on negative price detection and cost analysis for solar producers in Sweden.
 
-## Features
+**[Quick Start →](QUICKSTART.md)** | **[Live Demo](http://localhost:8080)** (after running locally)
 
-- **🔌 Prisdata från ENTSO-E**: Automatisk hämtning med lokal cache
-- **📊 CSV Format Detection**: AI-driven och traditionell CSV-parsing  
-- **💸 Negativ Prisanalys**: Detaljerad kostnadskalkyl för negativa prisperioder
-- **🌐 Webbgränssnitt**: Enkelt drag-and-drop interface för analys
-- **💱 Multi-valuta**: EUR, SEK, USD, NOK, etc.
-- **🤖 AI-förklaringar**: OpenAI-drivna sammanfattningar på svenska
-- **🔋 Batterisimulering**: Analys av energilagring för optimering
-- **📈 Omfattande rapportering**: JSON-export med detaljerade insikter
+<img src="https://img.shields.io/badge/Python-3.12+-blue.svg" alt="Python 3.12+">
+<img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License">
+<img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome">
 
-## Installation
+---
 
-Detta projekt använder [uv](https://docs.astral.sh/uv/) för dependency management:
+## 🎯 What is this?
+
+When you have solar panels, you often sell excess electricity back to the grid. But sometimes electricity prices go **negative** - meaning you actually pay to export your energy! This tool helps you:
+
+- 📊 **Analyze your production data** - Upload your solar production CSV/Excel file
+- 💸 **Detect negative price periods** - See when your export cost you money
+- 📈 **Visualize the impact** - Interactive charts showing monthly patterns
+- 🤖 **Get AI insights** (optional) - Swedish-language explanations of your analysis
+- 💾 **Export results** - Download detailed Excel reports
+
+## ✨ Key Features
+
+- **🔌 No API keys required** - Uses free [Sourceful Price API](https://docs.sourceful.energy/developer/price-api)
+- **🌍 Webapp interface** - Simple drag-and-drop file upload
+- **🇸🇪 Swedish electricity areas** - Supports SE_1 through SE_4
+- **🤖 Optional AI explanations** - Add OpenAI key for AI-powered insights
+- **📊 Visual analytics** - Charts and metrics at a glance
+- **💾 Excel export** - Detailed analysis export
+- **🚀 Easy deployment** - Docker support included
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) package manager
+
+### Install & Run (3 steps!)
 
 ```bash
-# Klona repository
+# 1. Clone the repository
 git clone https://github.com/srcfl/negative-price-calc.git
 cd negative-price-calc
 
-# Installera dependencies
+# 2. Install dependencies
 uv sync
 
-# Kopiera environment template
+# 3. Start the webapp
+uv run python app.py
+```
+
+Open your browser and go to `http://localhost:8080` 🎉
+
+**That's it!** No API keys needed for basic analysis.
+
+### Optional: Enable AI Explanations
+
+Want AI-powered insights? Just add your OpenAI API key:
+
+```bash
+# Copy environment template
 cp .env.example .env
-# Redigera .env med dina API-nycklar
+
+# Edit .env and add: OPENAI_API_KEY=your_key_here
 ```
 
-## Konfiguration
+Restart the webapp and AI explanations will appear automatically!
 
-Skapa en `.env`-fil med dina API-nycklar:
+## 🐳 Docker Deployment
 
 ```bash
-# Krävs för ENTSO-E prisdata
-ENTSOE_API_KEY=your_entso_e_api_key_here
+# Build and run with docker-compose
+docker-compose up --build
 
-# Krävs för AI-funktioner (OpenAI)
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Valfritt: Databaskonfiguration
-DATABASE_PATH=data/price_data.db
+# Open http://localhost:8080
 ```
 
-## Användning
+## 📖 How to Use
 
-### 🌐 Webbgränssnitt
+1. **Upload your data**: CSV or Excel file with solar production (hourly or daily)
+2. **Select electricity area**: SE_1, SE_2, SE_3, or SE_4
+3. **Click "Analysera"**: Results appear in seconds
+4. **Review insights**: See negative price impact, timing losses, and more
+5. **Export if needed**: Download Excel report for deeper analysis
 
-För enkel analys med grafiskt interface:
+### Supported File Formats
 
-```bash
-# Starta webbapplikationen
-uv run python run_webapp.py
+The tool intelligently handles various CSV/Excel formats. Your file should have:
+- **Timestamp/Date column**: DateTime or date values
+- **Production column**: Energy produced in kWh
 
-# Öppna sedan din webbläsare på: http://localhost:8080
-```
+Common column names are automatically detected (timestamp, date, production, kwh, etc.)
 
-Funktioner:
-- **📁 Drag & drop** filuppladdning (CSV/Excel)
-- **⚙️ Interaktiv konfiguration** (område, valuta, inställningar)  
-- **🤖 AI-driven analys** med svenska sammanfattningar
-- **📊 Visuell resultatdashboard** med nyckeltal
-- **💾 Excel & JSON export** för rapporter och vidare analys
-- **📱 Mobilanpassad** responsiv design
+### Example Files
 
-Se [WEBAPP.md](WEBAPP.md) för detaljerad dokumentation.
+Try it out with sample files in `data/samples/` directory!
 
-### Kommandoradsinterface (CLI)
+## 🏗️ Architecture
 
-Modern CLI med `se-cli`-kommando (auto-detekterar timvis vs daglig data och approximerar daglig till timvis för analys):
-
-```bash
-# Grundläggande JSON-analys (standard: hero, aggregates, diagnostics, scenarios, meta, input)
-uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json > lean.json
-
-# Fullständig JSON-analys (inkluderar timvis data, per-dag arrays, distributioner, extremer)
-uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-full > full.json
-
-# Anpassad subset (endast hero + distributioner)
-uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-sections hero,distributions > custom.json
-
-# Exportera tunga sektioner till parquet-filer, behåll lean JSON
-uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --json-artifacts data/artifacts > lean_with_refs.json
-
-# Inkludera svenska skatter/nätavgifter & moms för egenförbrukning
-uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json \
-	--energy-tax 0.39 --transmission-fee 0.20 --vat 25 > with_costs.json
-
-# Anpassad batterikonfiguration med avgifts-inkluderande beslutsgrund
-uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json \
-	--battery-capacities 12,18 --battery-power-kw 3 --battery-decision-basis spot_plus_fees > battery_custom.json
-
-# Inspektera produktionsfil (inga priser hämtas)
-uv run se-cli inspect-production "data/samples/Produktion - Viktor hourly.csv"
-
-# AI-förklaring på svenska (kräver OPENAI_API_KEY)
-uv run se-cli analyze "data/samples/Produktion - Viktor hourly.csv" --area SE_4 --json --ai-explainer > with_ai.json
-```
-
-Legacy `main.py` finns kvar men fasas ut till förmån för `se-cli`.
-
-### Python API
-
-```python
-from core.price_fetcher import PriceFetcher
-from core.production_loader import ProductionLoader
-
-# Initialisera komponenter
-fetcher = PriceFetcher()
-loader = ProductionLoader()
-
-# Ladda data
-production_df, granularity = loader.load_production('your_file.csv', use_llm=True)
-prices_df = fetcher.get_price_data('SE_4', start_date, end_date)
-
-# För storytelling JSON, använd CLI-funktionerna
-from cli.main import build_storytelling_payload
-import pandas as pd
-
-# Slå ihop data och skapa payload
-merged_df = pd.DataFrame({'prod_kwh': production_df['production_kwh']}).join(
-    (prices_df['price_eur_per_mwh'] * 11.5 / 1000).to_frame('sek_per_kwh'), 
-    how='left'
-)
-payload = build_storytelling_payload(merged_df, 'SEK', 11.5, granularity)
-```
-
-## Projektstruktur
+### Simple Structure
 
 ```
 negative-price-calc/
-├── core/                           # Kärnlogik
-│   ├── price_fetcher.py           # ENTSO-E API integration
-│   ├── production_loader.py       # CSV produktionsdata loader
-│   ├── price_analyzer.py          # Analysmotor
-│   ├── db_manager.py              # SQLite databashantering
-│   └── negative_price_analysis.py  # Negativ prisanalys
-├── cli/                            # Kommandoradsinterface
-│   └── main.py                    # Modern se-cli entrypoint
-├── utils/                          # Utility-moduler
-│   ├── csv_format_detector_fallback.py  # Traditionell CSV detection
-│   ├── csv_format_module.py             # LLM-driven CSV detection
-│   ├── ai_explainer.py                  # AI-analysförklaringar
-│   └── ai_table_reader.py               # AI-tabellläsning
-├── templates/                      # HTML-mallar för webbapp
-│   └── index.html                 # Huvudsida för webapp
-├── data/                          # Datakatalog
-│   ├── price_data.db             # SQLite databas (auto-skapad)
-│   ├── cache/                    # Temporär cache
-│   └── samples/                  # Exempelfiler
-├── app.py                         # Flask webbapplikation
-├── run_webapp.py                  # Webapp launcher
-├── main.py                        # Legacy CLI (fasas ut)
-├── pyproject.toml                # Projektkonfiguration
-└── .env.example                  # Environment template
+├── app.py                      # Flask webapp (start here!)
+├── cli/                        # Command-line interface
+│   └── main.py                # CLI entrypoint
+├── core/                       # Analysis engine
+│   ├── price_fetcher.py       # Sourceful API integration
+│   ├── production_loader.py   # CSV/Excel parser
+│   └── price_analyzer.py      # Core analysis logic
+├── templates/                  # HTML templates
+│   └── index.html             # Main webapp UI
+└── data/                       # Data storage
+    ├── price_data.db          # SQLite price cache
+    └── samples/               # Example files
 ```
 
-## Beroenden
+### Technology Stack
 
-- **pandas>=2.0.0**: Datamanipulation och analys
-- **numpy>=1.24.0**: Numeriska beräkningar
-- **requests>=2.31.0**: HTTP-anrop för API:er
-- **python-dotenv>=1.0.0**: Environment variable hantering
-- **openai>=1.0.0**: AI-funktioner
-- **chardet>=5.0.0**: Teckenkodnings-detection
-- **entsoe-py>=0.6.9**: ENTSO-E API-klient
-- **openpyxl>=3.1.2**: Excel-filhantering
-- **flask>=3.0.0**: Webbapplikationsramverk
+- **Backend**: Flask + Python 3.12
+- **Price Data**: [Sourceful API](https://docs.sourceful.energy/developer/price-api) (free, no key required)
+- **AI**: OpenAI GPT (optional)
+- **Storage**: SQLite for price caching
+- **Frontend**: Modern HTML/CSS/JS with drag-and-drop
 
-## Docker Deployment
+## 🇸🇪 Swedish Electricity Areas
 
-För enkel deployment med Docker:
+- **SE_1**: Northern Sweden (Luleå) - Typically lowest prices
+- **SE_2**: Central Sweden (Sundsvall)
+- **SE_3**: Central Sweden (Stockholm)
+- **SE_4**: Southern Sweden (Malmö) - Highest price volatility
+
+## 📊 What Analysis is Provided?
+
+### Key Metrics
+
+- **Total Production**: Your solar output (kWh)
+- **Total Revenue**: Income from electricity export
+- **Negative Price Hours**: When export cost money
+- **Timing Loss**: How much below market average you received
+- **Monthly Breakdown**: Visual charts showing patterns
+
+### AI Insights (Optional)
+
+With OpenAI API key configured:
+- Swedish-language explanation of your results
+- Key recommendations
+- Problem areas highlighted
+
+## 🛠️ Development
+
+### CLI Usage
+
+Want command-line access instead of webapp?
 
 ```bash
-# Kopiera environment template och konfigurera API-nycklar
-cp .env.example .env
-# Redigera .env med dina ENTSOE_API_KEY och OPENAI_API_KEY
+# Analyze with CLI
+uv run se-cli analyze your_file.csv --area SE_4 --json
 
-# Bygg och starta applikationen
-docker-compose up --build
+# With AI explanations
+uv run se-cli analyze your_file.csv --area SE_4 --json --ai-explainer
 
-# Öppna sedan din webbläsare på: http://localhost:8080
+# Inspect file format
+uv run se-cli inspect-production your_file.csv
 ```
 
-Docker-containern:
-- **🐳 Automatisk setup** med alla dependencies
-- **💾 Persistent data** via volumes för databas och cache
-- **🔄 Health checks** för tillgänglighet
-- **🔒 Säker konfiguration** via environment variabler
-- **📱 Produktionsredo** för deployment
-
-## Utveckling
-
-Installera utvecklingsberoenden:
+### Run Tests
 
 ```bash
-uv sync --dev
+uv run pytest
 ```
 
-Kör kodformattering:
+### Code Formatting
 
 ```bash
 uv run black .
 uv run isort .
 ```
 
-Kör linting:
+## 🤝 Contributing
 
+Contributions are welcome! This is an open source project for the solar community.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OPENAI_API_KEY` | Optional | Enables AI-powered explanations |
+| `DATABASE_PATH` | Optional | Custom SQLite database path (default: `data/price_data.db`) |
+
+**Note**: Electricity price data comes from Sourceful API which requires no API key!
+
+## 🐛 Troubleshooting
+
+### Port 8080 in use?
 ```bash
-uv run flake8
+# Run on different port
+uv run python -c "from app import app; app.run(host='0.0.0.0', port=5000)"
 ```
 
-Kör tester:
+### File upload fails?
+- Check file size (max 16MB)
+- Ensure valid CSV or Excel format
+- Try with sample files in `data/samples/`
 
-```bash
-uv run pytest
-```
+### Analysis seems wrong?
+- Verify your electricity area is correct
+- Check that your file has proper date/production columns
+- Use `se-cli inspect-production` to validate file format
 
-Starta development server:
+## 📚 Resources
 
-```bash
-# Webbapplikation
-uv run python run_webapp.py
+- **Sourceful Price API**: https://docs.sourceful.energy/developer/price-api
+- **Nordic Energy Markets**: https://www.nordpoolgroup.com/
+- **Swedish Energy Agency**: https://www.energimyndigheten.se/
 
-# Eller direkt via CLI
-uv run se-cli analyze --help
-```
+## 📄 License
 
-## Områdeskoder
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Vanliga elområdeskoder för nordiska länder:
+## 🙏 Acknowledgments
 
-- **SE_1**: Norra Sverige (Luleå)
-- **SE_2**: Mellersta Sverige (Sundsvall)  
-- **SE_3**: Mellersta Sverige (Stockholm)
-- **SE_4**: Södra Sverige (Malmö)
-- **NO_1**: Östra Norge (Oslo)
-- **NO_2**: Södra Norge (Kristiansand)
-- **DK_1**: Västra Danmark (Jylland)
-- **DK_2**: Östra Danmark (Köpenhamn)
+- Price data powered by [Sourceful Energy API](https://sourceful.energy)
+- Built for the solar producer community in Sweden
+- Inspired by real challenges facing solar panel owners
 
-## Datakällor
+## 📮 Support
 
-- **Prisdata**: ENTSO-E Transparency Platform API
-- **Produktionsdata**: CSV-filer från solcellsövervakningssystem
-- **AI-funktioner**: OpenAI GPT-modeller för förklaringar
-- **Cache**: Lokal SQLite-databas för prishistorik
+- 🐛 **Bug reports**: [Open an issue](https://github.com/srcfl/negative-price-calc/issues)
+- 💡 **Feature requests**: [Start a discussion](https://github.com/srcfl/negative-price-calc/discussions)
+- 📖 **Questions**: Check [QUICKSTART.md](QUICKSTART.md) or open an issue
 
-## Licens
+---
 
-Detta projekt är licensierat under MIT License.
-
-## Support
-
-För frågor eller problem, öppna en issue på [GitHub](https://github.com/srcfl/negative-price-calc/issues).
-
-## Changelog
-
-- **v0.1.1**: Webbgränssnitt, AI-förklaringar, batterisimulering
-- **v0.1.0**: Grundläggande CLI och prisanalys
+**Made with ❤️ for the solar energy community** | [GitHub](https://github.com/srcfl/negative-price-calc)

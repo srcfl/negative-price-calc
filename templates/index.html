@@ -723,19 +723,8 @@
 
 
 
-                <!-- Email input for lead capture -->
-                <div class="form-group">
-                    <label for="userEmailUpfront">Din e-postadress (krävs för AI-analys)</label>
-                    <input type="email" id="userEmailUpfront" name="email" required 
-                           placeholder="din.epost@exempel.se"
-                           style="width: 100%; padding: 12px 16px; border: 2px solid #E9ECEF; border-radius: 8px; font-size: 1rem; background: white;">
-                    <div style="font-size: 0.875rem; color: #6C757D; margin-top: 4px;">
-                        Vi använder din e-post för att spara analysen åt dig. Inga spam eller reklam.
-                    </div>
-                </div>
-
                 <button type="submit" class="analyze-btn" id="analyzeBtn">
-                    <span style="position: relative; z-index: 1;">Analysera med AI-sammanfattning</span>
+                    <span style="position: relative; z-index: 1;">Analysera</span>
                 </button>
             </form>
         </div>
@@ -829,23 +818,6 @@
             e.preventDefault();
         });
 
-        // Get user geolocation if available
-        let userLocation = null;
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    userLocation = {
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                        accuracy: position.coords.accuracy
-                    };
-                },
-                function(error) {
-                    console.log('Geolocation not available:', error.message);
-                },
-                { timeout: 5000, maximumAge: 300000 } // 5 second timeout, cache for 5 minutes
-            );
-        }
 
         // Form submission
         document.getElementById('analysisForm').addEventListener('submit', async function(e) {
@@ -865,25 +837,7 @@
             
             try {
                 const formData = new FormData(this);
-                
-                // Add geolocation data if available
-                if (userLocation) {
-                    formData.append('latitude', userLocation.latitude);
-                    formData.append('longitude', userLocation.longitude);
-                    formData.append('location_accuracy', userLocation.accuracy);
-                }
-                
-                // Add browser info
-                formData.append('browser_info', JSON.stringify({
-                    userAgent: navigator.userAgent,
-                    language: navigator.language,
-                    platform: navigator.platform,
-                    cookieEnabled: navigator.cookieEnabled,
-                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                    screenResolution: `${screen.width}x${screen.height}`,
-                    windowSize: `${window.innerWidth}x${window.innerHeight}`
-                }));
-                
+
                 const response = await fetch('/analyze', {
                     method: 'POST',
                     body: formData
