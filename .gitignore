@@ -28,6 +28,7 @@ wheels/
 # User data and tracking (not for open source)
 leads.csv
 data/email_logs.txt
+data/results/
 
 # Claude Code specific
 .claude/

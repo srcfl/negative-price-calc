@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Sourceful Design System styles are imported in layout.tsx */
+/* This file is for any project-specific overrides */
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus visible improvements */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
