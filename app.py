@@ -10,6 +10,8 @@ import hashlib
 import time
 from datetime import datetime
 from pathlib import Path
+from collections import defaultdict
+import threading
 import pandas as pd
 from io import BytesIO
 
@@ -29,6 +31,45 @@ app.config['UPLOAD_FOLDER'] = tempfile.gettempdir()
 # Results storage directory
 RESULTS_DIR = Path(__file__).parent / 'data' / 'results'
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# Rate limiting: 4 analyses per hour per IP
+RATE_LIMIT_MAX = 4
+RATE_LIMIT_WINDOW = 3600  # 1 hour in seconds
+rate_limit_store: dict[str, list[float]] = defaultdict(list)
+rate_limit_lock = threading.Lock()
+
+def get_client_ip() -> str:
+    """Get client IP, handling proxies."""
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    return request.remote_addr or 'unknown'
+
+def check_rate_limit() -> tuple[bool, int]:
+    """Check if client is within rate limit. Returns (allowed, remaining)."""
+    client_ip = get_client_ip()
+    current_time = time.time()
+
+    with rate_limit_lock:
+        # Clean old entries
+        rate_limit_store[client_ip] = [
+            t for t in rate_limit_store[client_ip]
+            if current_time - t < RATE_LIMIT_WINDOW
+        ]
+
+        # Check limit
+        request_count = len(rate_limit_store[client_ip])
+        remaining = RATE_LIMIT_MAX - request_count
+
+        if request_count >= RATE_LIMIT_MAX:
+            return False, 0
+
+        return True, remaining
+
+def record_request():
+    """Record a request for rate limiting."""
+    client_ip = get_client_ip()
+    with rate_limit_lock:
+        rate_limit_store[client_ip].append(time.time())
 
 ALLOWED_EXTENSIONS = {'csv', 'xlsx', 'xls'}
 AREA_CODES = {
@@ -290,6 +331,15 @@ def analyze_stream():
     def generate():
         file_path = None
         try:
+            # Check rate limit first
+            allowed, remaining = check_rate_limit()
+            if not allowed:
+                yield f"data: {json.dumps({'type': 'error', 'message': 'Du har nått gränsen på 4 analyser per timme. Försök igen senare.'})}\n\n"
+                return
+
+            # Record this request for rate limiting
+            record_request()
+
             # Check if file was uploaded
             if 'production_file' not in request.files:
                 yield f"data: {json.dumps({'type': 'error', 'message': 'Ingen fil uppladdad'})}\n\n"

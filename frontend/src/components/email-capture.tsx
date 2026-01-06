@@ -13,7 +13,7 @@ import {
   Checkbox,
 } from "@sourceful-energy/ui";
 import { toast } from "sonner";
-import { Mail, Loader2 } from "lucide-react";
+import { Mail, Loader2, Shield } from "lucide-react";
 
 interface EmailCaptureProps {
   onEmailSubmitted: () => void;
@@ -22,9 +22,14 @@ interface EmailCaptureProps {
 
 const FORMSPARK_FORM_ID = "ExsKPPKKy";
 
+// Simple email validation
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
 export function EmailCapture({ onEmailSubmitted, isAnalyzing }: EmailCaptureProps) {
   const [email, setEmail] = useState("");
-  const [company, setCompany] = useState("");
   const [acceptMarketing, setAcceptMarketing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,6 +38,11 @@ export function EmailCapture({ onEmailSubmitted, isAnalyzing }: EmailCaptureProp
 
     if (!email) {
       toast.error("Vänligen ange din e-postadress");
+      return;
+    }
+
+    if (!isValidEmail(email)) {
+      toast.error("Vänligen ange en giltig e-postadress");
       return;
     }
 
@@ -49,7 +59,6 @@ export function EmailCapture({ onEmailSubmitted, isAnalyzing }: EmailCaptureProp
           },
           body: JSON.stringify({
             email,
-            company: company || "Ej angivet",
             acceptMarketing,
             source: "Negativa Prisanalyseraren",
             timestamp: new Date().toISOString(),
@@ -100,18 +109,6 @@ export function EmailCapture({ onEmailSubmitted, isAnalyzing }: EmailCaptureProp
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="company">Företag (valfritt)</Label>
-            <Input
-              id="company"
-              type="text"
-              placeholder="Ditt företag"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              disabled={isSubmitting || isAnalyzing}
-            />
-          </div>
-
           <div className="flex items-start space-x-2">
             <Checkbox
               id="marketing"
@@ -141,6 +138,13 @@ export function EmailCapture({ onEmailSubmitted, isAnalyzing }: EmailCaptureProp
               "Analysera med AI-sammanfattning"
             )}
           </Button>
+
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/50 border border-border/50">
+            <Shield className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              <strong>Din data är säker:</strong> Filen du laddar upp används endast för analys och raderas direkt efteråt. Vi sparar ingen produktionsdata.
+            </p>
+          </div>
 
           <p className="text-xs text-muted-foreground text-center">
             Genom att klicka accepterar du vår{" "}
