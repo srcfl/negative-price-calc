@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
 Simple web frontend for the Negative Price Calculator
+
+Requires environment variables:
+- OPENAI_API_KEY: OpenRouter API key for AI features (required for AI explanations)
+- ENTSOE_API_KEY: ENTSO-E API key for historical price data (optional fallback)
 """
 import os
 import json
