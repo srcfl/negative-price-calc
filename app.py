@@ -183,7 +183,18 @@ def analyze_file_preview(file_path: str, filename: str) -> dict:
         ext = filename.lower().split('.')[-1]
         if ext == 'csv':
             result['file_type'] = 'CSV'
-            df = pd.read_csv(file_path, nrows=1000)
+            # Try different separators (Swedish CSV often uses semicolon)
+            df = None
+            for sep in [';', ',', '\t']:
+                try:
+                    df = pd.read_csv(file_path, sep=sep, nrows=1000, encoding='utf-8-sig')
+                    # Check if we got multiple columns
+                    if len(df.columns) > 1:
+                        break
+                except:
+                    continue
+            if df is None:
+                df = pd.read_csv(file_path, nrows=1000, encoding='utf-8-sig')
         elif ext in ['xlsx', 'xls']:
             result['file_type'] = 'Excel'
             df = pd.read_excel(file_path, nrows=1000)
