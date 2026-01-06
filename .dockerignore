@@ -49,7 +49,7 @@ Thumbs.db
 
 # Application specific
 data/cache/*
-data/*.db*
+data/results/*
 leads.csv
 dump.json
 combined_typechecker_and_linter_problems.txt
