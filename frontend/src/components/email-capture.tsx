@@ -30,7 +30,7 @@ function isValidEmail(email: string): boolean {
 
 export function EmailCapture({ onEmailSubmitted, isAnalyzing }: EmailCaptureProps) {
   const [email, setEmail] = useState("");
-  const [acceptMarketing, setAcceptMarketing] = useState(false);
+  const [acceptMarketing, setAcceptMarketing] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -120,7 +120,7 @@ export function EmailCapture({ onEmailSubmitted, isAnalyzing }: EmailCaptureProp
               htmlFor="marketing"
               className="text-sm text-muted-foreground leading-tight cursor-pointer"
             >
-              Jag vill få tips och nyheter om energioptimering från Sourceful Energy
+              Jag vill få veta det senaste från Sourceful Energy
             </label>
           </div>
 
