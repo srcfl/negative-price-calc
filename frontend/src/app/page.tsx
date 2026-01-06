@@ -241,13 +241,33 @@ export default function Home() {
             </div>
 
             {/* Info Section */}
-            <div className="text-center text-sm text-muted-foreground space-y-2">
-              <p>
-                Ladda upp din elförbrukningsdata från Mina Sidor hos ditt nätbolag.
-              </p>
-              <p>
-                Bäst resultat med tim- eller 15-minutersdata. Dygnsdata ger en grov uppskattning.
-              </p>
+            <div className="rounded-lg border border-border/50 bg-muted/30 p-6 space-y-4">
+              <h3 className="font-semibold text-foreground">Så här fungerar det</h3>
+              <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+                <li>
+                  <span className="text-foreground">Hämta din exportdata</span> – Logga in på Mina Sidor hos ditt nätbolag eller elbolag och exportera din mätardata (ofta CSV eller Excel).
+                </li>
+                <li>
+                  <span className="text-foreground">Ladda upp filen</span> – Välj filen ovan. Verktyget försöker automatiskt tolka formatet.
+                </li>
+                <li>
+                  <span className="text-foreground">Få din analys</span> – Vi matchar din export med historiska spotpriser och räknar ut vad din solel var värd.
+                </li>
+              </ol>
+
+              <div className="pt-2 border-t border-border/50 space-y-2 text-sm text-muted-foreground">
+                <p>
+                  <strong className="text-foreground">Varför är detta viktigt?</strong> Sedan 1 januari 2026 finns inte längre skattereduktionen på 60 öre/kWh för solel.
+                  Nu är det spotpriset som avgör vad din export är värd – och vid negativa priser kan du till och med förlora pengar på att exportera.
+                </p>
+                <p>
+                  <strong className="text-foreground">Krav på data:</strong> Filen måste innehålla en kolumn med datum/tid och en kolumn med exporterad energi i kWh.
+                  Bäst resultat med timdata eller 15-minutersdata.
+                </p>
+                <p className="text-xs italic">
+                  Verktyget gör sitt bästa för att tolka olika filformat, men vi tar inget ansvar för analysens exakthet.
+                </p>
+              </div>
             </div>
           </div>
         )}
