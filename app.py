@@ -13,7 +13,7 @@ from pathlib import Path
 import pandas as pd
 from io import BytesIO
 
-from flask import Flask, render_template, request, jsonify, send_file, Response, stream_with_context
+from flask import Flask, request, jsonify, send_file, Response, stream_with_context
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
@@ -65,7 +65,17 @@ def load_result(result_id: str) -> dict | None:
 
 @app.route('/')
 def index():
-    return render_template('index.html', area_codes=AREA_CODES)
+    """API root - return service info."""
+    return jsonify({
+        'service': 'Negative Price Calculator API',
+        'version': '2.0.0',
+        'endpoints': {
+            '/health': 'Health check',
+            '/api/analyze/stream': 'POST - Analyze production file (SSE)',
+            '/api/results/<id>': 'GET - Retrieve saved results',
+        },
+        'areas': AREA_CODES
+    })
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
