@@ -9,7 +9,11 @@ import requests
 logger = logging.getLogger(__name__)
 
 class AIExplainer:
-    """Generate Swedish explanation using direct HTTP (requests) instead of OpenAI SDK."""
+    """Generate Swedish explanation using direct HTTP (requests) via OpenRouter."""
+
+    # Model for explanations/storytelling
+    DEFAULT_MODEL = "x-ai/grok-4.1-fast"
+    DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 
     def __init__(self):
         if not os.getenv('OPENAI_API_KEY'):
@@ -17,9 +21,9 @@ class AIExplainer:
                 load_dotenv()
             except Exception:
                 pass
-        override = os.getenv('OPENAI_MODEL')
-        self.model = override if override else 'gpt-5-mini'
-        self.base_url = os.getenv('OPENAI_BASE_URL', 'https://api.openai.com/v1')
+        override = os.getenv('OPENAI_EXPLAINER_MODEL')
+        self.model = override if override else self.DEFAULT_MODEL
+        self.base_url = os.getenv('OPENAI_BASE_URL', self.DEFAULT_BASE_URL)
 
     def explain_storytelling(self, payload: Dict[str, Any]) -> str:
         if not os.getenv('OPENAI_API_KEY'):
@@ -194,10 +198,17 @@ class AIExplainer:
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
             return None
-        url = f"{self.base_url.rstrip('/')}/responses"
-        # Keep payload minimal for maximum compatibility (some deployments reject extra params)
-        payload = {"model": self.model, "input": prompt}
-        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+        url = f"{self.base_url.rstrip('/')}/chat/completions"
+        payload = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}]
+        }
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://sourceful.energy",
+            "X-Title": "Negativa Prisanalyseraren"
+        }
         timeout_s = float(os.getenv('OPENAI_TIMEOUT', '40'))
         r = requests.post(url, headers=headers, data=json.dumps(payload), timeout=timeout_s)
         if r.status_code != 200:
@@ -208,27 +219,11 @@ class AIExplainer:
             raise RuntimeError(f"JSON decode misslyckades: {e}")
         if os.getenv('OPENAI_DEBUG_EXPLAINER') == '1':
             logger.debug('HTTP JSON keys: %s', list(data.keys()))
-        output = data.get('output') or []
-        pieces: list[str] = []
-        for item in output:
-            if isinstance(item, dict) and item.get('type') == 'message':
-                for block in item.get('content', []) or []:
-                    if isinstance(block, dict):
-                        t = block.get('text')
-                        if isinstance(t, str):
-                            pieces.append(t)
-                        elif isinstance(t, dict):
-                            val = t.get('value') or t.get('text')
-                            if isinstance(val, str):
-                                pieces.append(val)
-            elif isinstance(item, dict) and item.get('type') in ('text','output_text'):
-                t = item.get('text')
-                if isinstance(t, str):
-                    pieces.append(t)
-        if not pieces and isinstance(data.get('output_text'), str):
-            pieces.append(data['output_text'])
-        text = '\n'.join(p.strip() for p in pieces if p and p.strip())
-        return text or None
+        # Standard chat completions response format
+        choices = data.get('choices', [])
+        if choices and choices[0].get('message', {}).get('content'):
+            return choices[0]['message']['content']
+        return None
 
     def _manual_fallback(self, facts: Dict[str, Any], reason: str) -> str:
         """Produce a simple deterministic Swedish summary if AI fails."""

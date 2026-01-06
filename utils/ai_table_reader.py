@@ -22,13 +22,19 @@ class AITableReader:
       - output: pandas DataFrame with best-effort header/rows; may raise if no date column exists
     """
 
+    # Model for code/parsing tasks
+    DEFAULT_MODEL = "x-ai/grok-code-fast-1"
+    DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
+
     def __init__(self, max_preview_bytes: int = 64 * 1024):
         self.max_preview_bytes = max_preview_bytes
         self.client = None
+        self.model = os.getenv("OPENAI_PARSER_MODEL", self.DEFAULT_MODEL)
+        self.base_url = os.getenv("OPENAI_BASE_URL", self.DEFAULT_BASE_URL)
         api_key = os.getenv("OPENAI_API_KEY")
         if api_key and OpenAI is not None:
             try:
-                self.client = OpenAI()
+                self.client = OpenAI(api_key=api_key, base_url=self.base_url)
             except Exception as e:
                 logger.warning(f"Failed to init OpenAI client: {e}")
 
@@ -75,17 +81,11 @@ class AITableReader:
         )
 
         try:
-            resp = self.client.responses.create(
-                model=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
-                input=instruction,
+            resp = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": instruction}],
             )
-            content = getattr(resp, "output_text", None)
-            if not content and hasattr(resp, "choices"):
-                # compatibility fallback
-                try:
-                    content = resp.choices[0].message.content
-                except Exception:
-                    content = None
+            content = resp.choices[0].message.content if resp.choices else None
             if not content:
                 raise RuntimeError("AI response empty")
             spec = json.loads(self._extract_json(content))
