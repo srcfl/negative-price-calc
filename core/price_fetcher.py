@@ -8,6 +8,14 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+# Try to import entsoe for fallback
+try:
+    from entsoe import EntsoePandasClient
+    ENTSOE_AVAILABLE = True
+except ImportError:
+    ENTSOE_AVAILABLE = False
+    logger.debug("entsoe-py not installed, ENTSO-E fallback not available")
+
 class PriceFetcher:
     # Normalize various inputs to Sourceful API expected area codes
     ZONE_MAP = {
@@ -17,10 +25,23 @@ class PriceFetcher:
         'SE4': 'SE4', 'SE-4': 'SE4', 'SE_4': 'SE4',
     }
 
+    # ENTSO-E area codes
+    ENTSOE_ZONE_MAP = {
+        'SE1': '10Y1001A1001A44P',
+        'SE2': '10Y1001A1001A45N',
+        'SE3': '10Y1001A1001A46L',
+        'SE4': '10Y1001A1001A47J',
+    }
+
     SOURCEFUL_API_BASE = 'https://mainnet.srcful.dev/price/electricity'
 
     def __init__(self, db_path='data/price_data.db'):
         self.db_manager = PriceDatabaseManager(db_path)
+        self.entsoe_client = None
+        entsoe_key = os.getenv('ENTSOE_API_KEY')
+        if ENTSOE_AVAILABLE and entsoe_key:
+            self.entsoe_client = EntsoePandasClient(api_key=entsoe_key)
+            logger.info("ENTSO-E fallback enabled with API key")
         logger.info("Using Sourceful Price API (no API key required)")
 
     def get_price_data(self, area_code, start_date, end_date, force_api: bool = False):
@@ -66,9 +87,19 @@ class PriceFetcher:
         if frames:
             df = pd.concat(frames).sort_index()
             df = df[~df.index.duplicated(keep='last')]
-            # Filter to requested range
-            df = df[(df.index >= ts_start) & (df.index < ts_end)]
+            # Filter to requested range - ensure tz-naive comparison
+            ts_start_naive = ts_start.tz_localize(None) if ts_start.tzinfo else ts_start
+            ts_end_naive = ts_end.tz_localize(None) if ts_end.tzinfo else ts_end
+            df = df[(df.index >= ts_start_naive) & (df.index < ts_end_naive)]
             return df
+
+        # Try ENTSO-E fallback for historical data
+        if self.entsoe_client:
+            logger.info(f"Sourceful API has no data, trying ENTSO-E for {zone}")
+            df_entsoe = self._fetch_from_entsoe(zone, ts_start, ts_end)
+            if df_entsoe is not None and not df_entsoe.empty:
+                self.db_manager.store_price_data(df_entsoe, area_code)
+                return df_entsoe
 
         # Fallback to whatever exists in DB
         logger.warning(f"Incomplete data available for {area_code} from {start_date} to {end_date}")
@@ -128,6 +159,56 @@ class PriceFetcher:
             return None
         except (KeyError, ValueError) as e:
             logger.error(f"Error parsing Sourceful API response: {e}")
+            return None
+
+    def _fetch_from_entsoe(self, area_code: str, start: pd.Timestamp, end: pd.Timestamp) -> Optional[pd.DataFrame]:
+        """Fetch price data from ENTSO-E Transparency Platform.
+
+        Params:
+            area_code: Normalized area code (e.g., 'SE4')
+            start, end: Timestamps for the date range
+
+        Returns:
+            DataFrame with price_eur_per_mwh column, indexed by timestamp (Europe/Stockholm, tz-naive)
+        """
+        if not self.entsoe_client:
+            return None
+
+        entsoe_zone = self.ENTSOE_ZONE_MAP.get(area_code)
+        if not entsoe_zone:
+            logger.warning(f"No ENTSO-E zone mapping for {area_code}")
+            return None
+
+        try:
+            # ENTSO-E requires timezone-aware timestamps
+            start_tz = start.tz_localize('Europe/Stockholm') if start.tzinfo is None else start
+            end_tz = end.tz_localize('Europe/Stockholm') if end.tzinfo is None else end
+
+            logger.info(f"Fetching from ENTSO-E for {area_code} ({entsoe_zone}) from {start_tz} to {end_tz}")
+
+            # Query day-ahead prices
+            prices = self.entsoe_client.query_day_ahead_prices(
+                entsoe_zone,
+                start=pd.Timestamp(start_tz),
+                end=pd.Timestamp(end_tz)
+            )
+
+            if prices is None or prices.empty:
+                logger.warning(f"No data from ENTSO-E for {area_code}")
+                return None
+
+            # Convert to DataFrame with expected format
+            df = pd.DataFrame({'price_eur_per_mwh': prices})
+
+            # Make tz-naive for consistency
+            if df.index.tzinfo is not None:
+                df.index = df.index.tz_convert('Europe/Stockholm').tz_localize(None)
+
+            logger.info(f"Fetched {len(df)} price points from ENTSO-E for {area_code}")
+            return df
+
+        except Exception as e:
+            logger.error(f"Error fetching from ENTSO-E: {e}")
             return None
 
     def _fetch_from_api(self, area_code, start_date, end_date):

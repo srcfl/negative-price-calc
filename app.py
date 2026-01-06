@@ -301,7 +301,20 @@ def parse_cli_error(stderr: str, stdout: str) -> str:
     """Parse CLI error output into a user-friendly message."""
     error_text = stderr or stdout or ''
 
-    # Common error patterns
+    # Filter out UV deprecation warnings (noise)
+    lines = error_text.split('\n')
+    filtered_lines = [l for l in lines if not l.startswith('warning: The `tool.uv')]
+    error_text = '\n'.join(filtered_lines)
+
+    # Common error patterns - ORDER MATTERS! More specific patterns first
+
+    # Price data issues (check before generic "no data")
+    if 'no price data' in error_text.lower() or ('price' in error_text.lower() and 'available' in error_text.lower()):
+        return 'Kunde inte hämta elpriser för angivet datumintervall. Sourceful API har endast prisdata för de senaste månaderna.'
+
+    if 'price' in error_text.lower() and 'fetch' in error_text.lower():
+        return 'Kunde inte hämta elpriser. Kontrollera att datumintervallet är rimligt (max 2 år).'
+
     if 'No date column found' in error_text or 'datum' in error_text.lower():
         return 'Kunde inte hitta datumkolumn i filen. Kontrollera att filen innehåller en kolumn med datum/tid.'
 
@@ -316,9 +329,6 @@ def parse_cli_error(stderr: str, stdout: str) -> str:
 
     if 'permission' in error_text.lower():
         return 'Kunde inte läsa filen. Kontrollera filrättigheter.'
-
-    if 'price' in error_text.lower() and 'fetch' in error_text.lower():
-        return 'Kunde inte hämta elpriser. Kontrollera att datumintervallet är rimligt (max 2 år).'
 
     # Return first line of error if specific pattern not found
     first_line = error_text.strip().split('\n')[0] if error_text else 'Okänt fel'

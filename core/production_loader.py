@@ -27,18 +27,25 @@ class ProductionLoader:
                 df_raw = pd.read_excel(file_path, engine="openpyxl")
             else:
                 df_raw = self.fallback_reader.read(file_path)
+            logger.info("Loaded %d rows, columns: %s", len(df_raw), list(df_raw.columns)[:5])
             if self._looks_like_standard_schema(df_raw):
+                logger.info("Standard schema detected, processing...")
                 return self._process_auto(df_raw)
-        except Exception:
-            pass
+            logger.info("Schema not standard (missing required columns)")
+        except Exception as e:
+            logger.warning("Initial read failed: %s", e)
 
         # 2) Non-standard schema (or read failed): ask AI to infer header/columns
-        try:
-            logger.info("Schema not standard or read failed; invoking AI-assisted parser for: %s", file_path)
-            df_ai = self.ai_reader.read(file_path)
-            return self._process_auto(df_ai)
-        except Exception as e:
-            logger.info("AI parsing failed (%s); attempting minimal Excel fallbacks", e)
+        if use_llm:
+            try:
+                logger.info("Schema not standard or read failed; invoking AI-assisted parser for: %s", file_path)
+                df_ai = self.ai_reader.read(file_path)
+                logger.info("AI parsed %d rows, columns: %s", len(df_ai), list(df_ai.columns)[:5])
+                return self._process_auto(df_ai)
+            except Exception as e:
+                logger.warning("AI parsing failed: %s", e)
+        else:
+            logger.info("LLM parsing disabled, skipping AI-assisted parser")
 
         # 3) Last-chance Excel fallbacks (no AI or AI failed)
         if is_excel:
