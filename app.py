@@ -527,8 +527,11 @@ def analyze_stream():
                     analysis_data = json.loads(stdout)
                 except json.JSONDecodeError as e:
                     yield f"data: {json.dumps({'type': 'error', 'message': 'Kunde inte tolka analysresultat'})}\n\n"
+                    # Show both stdout and stderr for debugging
+                    if stdout:
+                        yield f"data: {json.dumps({'type': 'info', 'message': f'stdout: {stdout[:500]}'})}\n\n"
                     if stderr:
-                        yield f"data: {json.dumps({'type': 'info', 'message': f'CLI output: {stderr[:300]}'})}\n\n"
+                        yield f"data: {json.dumps({'type': 'info', 'message': f'stderr: {stderr[:300]}'})}\n\n"
                     return
 
             # Show some results in log
