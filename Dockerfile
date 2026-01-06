@@ -8,6 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv for dependency management
@@ -22,15 +23,18 @@ RUN uv sync --frozen
 # Copy application code
 COPY . .
 
-# Create data directory for SQLite database and cache
-RUN mkdir -p data/cache
+# Create data directory for SQLite database, cache and results
+RUN mkdir -p data/cache data/results
 
-# Expose port 8080
+# Expose port (Railway sets PORT env var)
 EXPOSE 8080
 
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV FLASK_ENV=production
 
-# Run the web application
-CMD ["uv", "run", "python", "run_webapp.py"]
+# Default port (Railway overrides with PORT env var)
+ENV PORT=8080
+
+# Run with gunicorn for production (uses $PORT from environment)
+CMD uv run gunicorn --bind "0.0.0.0:$PORT" --workers 2 --timeout 300 app:app

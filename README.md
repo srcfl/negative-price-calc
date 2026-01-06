@@ -77,6 +77,34 @@ docker-compose up --build
 # Open http://localhost:8080
 ```
 
+## 🚂 Railway Deployment
+
+Deploy to [Railway](https://railway.app) with one click:
+
+### Backend API
+
+1. Create new project on Railway
+2. Connect your GitHub repo
+3. Set root directory to `/` (project root)
+4. Add environment variables:
+   - `OPENAI_API_KEY` (optional, for AI insights)
+   - `CORS_ORIGINS` (your frontend URL, e.g., `https://your-frontend.railway.app`)
+
+### Frontend
+
+1. Create another service in the same project
+2. Set root directory to `/frontend`
+3. Add environment variable:
+   - `NEXT_PUBLIC_API_URL` (your backend URL, e.g., `https://your-backend.railway.app`)
+
+### Environment Variables for Railway
+
+| Variable | Service | Description |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | Backend | Optional - enables AI explanations |
+| `CORS_ORIGINS` | Backend | Frontend URL(s), comma-separated |
+| `NEXT_PUBLIC_API_URL` | Frontend | Backend API URL |
+
 ## 📖 How to Use
 
 1. **Upload your data**: CSV or Excel file with solar production (hourly or daily)
@@ -195,6 +223,9 @@ Contributions are welcome! This is an open source project for the solar communit
 |----------|----------|-------------|
 | `OPENAI_API_KEY` | Optional | Enables AI-powered explanations |
 | `DATABASE_PATH` | Optional | Custom SQLite database path (default: `data/price_data.db`) |
+| `CORS_ORIGINS` | Optional | Allowed frontend origins for CORS (default: `http://localhost:3000`) |
+| `PORT` | Optional | Server port (default: `8080`, Railway sets this automatically) |
+| `NEXT_PUBLIC_API_URL` | Frontend | Backend API URL for Next.js frontend |
 
 **Note**: Electricity price data comes from Sourceful API which requires no API key!
 
