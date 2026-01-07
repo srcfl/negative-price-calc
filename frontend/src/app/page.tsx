@@ -25,7 +25,7 @@ const AREA_CODES = {
   SE_4: "Södra Sverige (Malmö)",
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+// API routes are proxied through Next.js - no CORS issues
 
 interface AnalysisResponse {
   success: boolean;
@@ -85,7 +85,7 @@ export default function Home() {
 
       addLog("info", `Startar analys av ${selectedFile.name}...`);
 
-      const response = await fetch(`${API_BASE_URL}/analyze/stream`, {
+      const response = await fetch("/api/analyze/stream", {
         method: "POST",
         body: formData,
         signal: abortControllerRef.current.signal,

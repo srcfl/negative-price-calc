@@ -9,7 +9,7 @@ import { Header } from "@/components/header";
 import { AnalysisResults } from "@/components/analysis-results";
 import { ShareButton } from "@/components/share-button";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+// API routes are proxied through Next.js - no CORS issues
 
 interface AnalysisResponse {
   success: boolean;
@@ -39,7 +39,7 @@ export default function ResultPage({ params }: PageProps) {
   useEffect(() => {
     async function fetchResult() {
       try {
-        const response = await fetch(`${API_BASE_URL}/results/${id}`);
+        const response = await fetch(`/api/results/${id}`);
         const data = await response.json();
 
         if (!response.ok || data.error) {
@@ -62,7 +62,7 @@ export default function ResultPage({ params }: PageProps) {
     if (!result) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/download_xlsx`, {
+      const response = await fetch("/api/download_xlsx", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
