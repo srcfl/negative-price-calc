@@ -18,10 +18,17 @@ from collections import defaultdict
 import threading
 import pandas as pd
 from io import BytesIO
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 from flask import Flask, request, jsonify, send_file, Response, stream_with_context
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
+
+# Import AI table reader for smart file preview
+from utils.ai_table_reader import AITableReader
 
 app = Flask(__name__)
 
@@ -212,7 +219,12 @@ def analyze():
         return jsonify({'error': f'Analysis failed: {str(e)}'}), 500
 
 def analyze_file_preview(file_path: str, filename: str) -> dict:
-    """Analyze file to extract preview info before full analysis."""
+    """Analyze file to extract preview info before full analysis.
+
+    Uses AI-first approach: If OPENAI_API_KEY is available, use AI to intelligently
+    detect file structure (including multi-section files like EON exports).
+    Falls back to simple heuristics if AI unavailable.
+    """
     result = {
         'file_type': 'unknown',
         'rows': 0,
@@ -220,7 +232,8 @@ def analyze_file_preview(file_path: str, filename: str) -> dict:
         'date_column': None,
         'value_column': None,
         'date_range': None,
-        'error': None
+        'error': None,
+        'ai_parsed': False
     }
 
     try:
@@ -228,30 +241,61 @@ def analyze_file_preview(file_path: str, filename: str) -> dict:
         ext = filename.lower().split('.')[-1]
         if ext == 'csv':
             result['file_type'] = 'CSV'
-            # Try different separators (Swedish CSV often uses semicolon)
+        elif ext in ['xlsx', 'xls']:
+            result['file_type'] = 'Excel'
+        else:
+            result['error'] = f'Okänt filformat: {ext}'
+            return result
+
+        # AI-FIRST: Try AI parsing when available
+        ai_reader = AITableReader()
+        if ai_reader.is_available():
+            try:
+                df, spec = ai_reader.read(file_path)
+                result['rows'] = len(df)
+                result['columns'] = list(df.columns)
+                result['date_column'] = spec.get('datetime_column')
+                result['value_column'] = spec.get('value_column')
+                result['ai_parsed'] = True
+
+                # Get date range from AI-parsed data
+                if result['date_column'] and result['date_column'] in df.columns:
+                    try:
+                        dates = pd.to_datetime(df[result['date_column']], errors='coerce')
+                        valid_dates = dates.dropna()
+                        if len(valid_dates) > 0:
+                            result['date_range'] = {
+                                'start': valid_dates.min().strftime('%Y-%m-%d'),
+                                'end': valid_dates.max().strftime('%Y-%m-%d')
+                            }
+                    except:
+                        pass
+
+                return result
+            except Exception as e:
+                # AI failed, fall back to heuristics
+                pass
+
+        # FALLBACK: Simple heuristic parsing (when AI unavailable)
+        if ext == 'csv':
             df = None
             for sep in [';', ',', '\t']:
                 try:
                     df = pd.read_csv(file_path, sep=sep, nrows=1000, encoding='utf-8-sig')
-                    # Check if we got multiple columns
                     if len(df.columns) > 1:
                         break
                 except:
                     continue
             if df is None:
                 df = pd.read_csv(file_path, nrows=1000, encoding='utf-8-sig')
-        elif ext in ['xlsx', 'xls']:
-            result['file_type'] = 'Excel'
-            df = pd.read_excel(file_path, nrows=1000)
         else:
-            result['error'] = f'Okänt filformat: {ext}'
-            return result
+            df = pd.read_excel(file_path, nrows=1000)
 
         result['rows'] = len(df)
         result['columns'] = list(df.columns)
 
-        # Try to find date column
-        date_keywords = ['datum', 'date', 'time', 'tid', 'timestamp', 'datetime']
+        # Try to find date column with keywords
+        date_keywords = ['datum', 'date', 'time', 'tid', 'timestamp', 'datetime', 'starttidpunkt']
         for col in df.columns:
             col_lower = str(col).lower()
             if any(kw in col_lower for kw in date_keywords):
@@ -268,14 +312,15 @@ def analyze_file_preview(file_path: str, filename: str) -> dict:
                 pass
 
         # Try to find value/energy column
-        value_keywords = ['kwh', 'wh', 'energi', 'energy', 'värde', 'value', 'produktion', 'export', 'förbrukning', 'consumption']
+        value_keywords = ['kwh', 'wh', 'energi', 'energy', 'värde', 'value', 'produktion',
+                         'export', 'förbrukning', 'consumption', 'kvantitet', 'mängd', 'quantity']
         for col in df.columns:
             col_lower = str(col).lower()
             if any(kw in col_lower for kw in value_keywords):
                 result['value_column'] = col
                 break
 
-        # If still no value column, look for numeric columns
+        # If still no value column, look for numeric columns (excluding date column)
         if not result['value_column']:
             for col in df.columns:
                 if col != result['date_column'] and pd.api.types.is_numeric_dtype(df[col]):
@@ -395,6 +440,12 @@ def analyze_stream():
 
             file_type = preview['file_type']
             row_count = preview['rows']
+            ai_parsed = preview.get('ai_parsed', False)
+
+            if ai_parsed:
+                yield f"data: {json.dumps({'type': 'ai', 'message': 'AI analyserade filstrukturen'})}\n\n"
+                time.sleep(0.1)
+
             yield f"data: {json.dumps({'type': 'info', 'message': f'Filtyp: {file_type} med {row_count} rader'})}\n\n"
             time.sleep(0.1)
 
