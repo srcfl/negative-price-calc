@@ -321,3 +321,7 @@ class ProductionLoader:
     def get_last_ai_spec(self) -> Optional[dict]:
         """Return the AI analysis spec from the last parsing, if available."""
         return self.last_ai_spec
+
+    def get_last_parse_format(self) -> Optional[str]:
+        """Return the parse format from the last parsing, if available."""
+        return getattr(self, 'last_parse_format', None)
