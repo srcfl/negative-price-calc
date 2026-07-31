@@ -113,6 +113,8 @@ interface AnalysisData {
   manads_prognos?: {
     antal_manader?: number;
     fullstandiga_manader?: number;
+    /** False when no fixed monthly fee was entered — the net columns are then omitted. */
+    har_fasta_avgifter?: boolean;
     elnat_avgift_sek_per_man?: number;
     elhandel_avgift_sek_per_man?: number;
     fasta_avgifter_sek_per_man?: number;
@@ -985,8 +987,12 @@ export function AnalysisResults({
         </Card>
       )}
 
-      {/* Monthly forecast — what to expect per full-data month */}
-      {data.manads_prognos && (data.manads_prognos.fullstandiga_manader ?? 0) > 0 && (
+      {/* Monthly forecast — what to expect per full-data month. Without any fixed monthly fee
+          the net-after-fees figures are omitted rather than computed against 0 kr. */}
+      {data.manads_prognos && (data.manads_prognos.fullstandiga_manader ?? 0) > 0 && (() => {
+        const hasFixedFees =
+          data.manads_prognos.har_fasta_avgifter ?? data.manads_prognos.snitt_netto_sek != null;
+        return (
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
@@ -996,23 +1002,41 @@ export function AnalysisResults({
             </div>
             <CardDescription>
               Per hel månad (delmånader är uppräknade till full månad) över {formatNumber(data.manads_prognos.antal_manader)} månader
-              {(data.manads_prognos.fasta_avgifter_sek_per_man ?? 0) > 0
+              {hasFixedFees
                 ? `, efter fasta avgifter (${formatCurrency(data.manads_prognos.fasta_avgifter_sek_per_man)}/mån)`
-                : ""}
+                : ", före fasta avgifter"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-3xl font-bold font-mono ${(data.manads_prognos.snitt_netto_sek ?? 0) < 0 ? "text-destructive" : "text-primary"}`}>
-                {formatCurrency(data.manads_prognos.snitt_netto_sek)}
-              </span>
-              <span className="text-muted-foreground">netto per månad i snitt</span>
-            </div>
-            <div className="mt-2 text-sm text-muted-foreground">
-              Ersättning {formatCurrency(data.manads_prognos.snitt_effektiv_ersattning_sek)}/mån − fasta avgifter{" "}
-              {formatCurrency(data.manads_prognos.fasta_avgifter_sek_per_man)}/mån. Snittproduktion{" "}
-              {formatNumber(data.manads_prognos.snitt_production_kwh, 0)} kWh/mån.
-            </div>
+            {hasFixedFees ? (
+              <>
+                <div className="flex items-baseline gap-2">
+                  <span className={`text-3xl font-bold font-mono ${(data.manads_prognos.snitt_netto_sek ?? 0) < 0 ? "text-destructive" : "text-primary"}`}>
+                    {formatCurrency(data.manads_prognos.snitt_netto_sek)}
+                  </span>
+                  <span className="text-muted-foreground">netto per månad i snitt</span>
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Ersättning {formatCurrency(data.manads_prognos.snitt_effektiv_ersattning_sek)}/mån − fasta avgifter{" "}
+                  {formatCurrency(data.manads_prognos.fasta_avgifter_sek_per_man)}/mån. Snittproduktion{" "}
+                  {formatNumber(data.manads_prognos.snitt_production_kwh, 0)} kWh/mån.
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold font-mono text-primary">
+                    {formatCurrency(data.manads_prognos.snitt_effektiv_ersattning_sek)}
+                  </span>
+                  <span className="text-muted-foreground">ersättning per månad i snitt</span>
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Snittproduktion {formatNumber(data.manads_prognos.snitt_production_kwh, 0)} kWh/mån. Fyll i{" "}
+                  <span className="text-foreground">fasta månadsavgifter</span> i inställningarna för att få netto efter
+                  avgifter.
+                </div>
+              </>
+            )}
 
             {data.manads_prognos.manader && data.manads_prognos.manader.length > 0 && (
               <div className="mt-4 overflow-x-auto">
@@ -1021,9 +1045,13 @@ export function AnalysisResults({
                     <tr className="border-b border-border/50 text-left text-muted-foreground">
                       <th className="py-2 pr-4 font-medium">Månad</th>
                       <th className="py-2 pr-4 font-medium text-right">Produktion</th>
-                      <th className="py-2 pr-4 font-medium text-right">Ersättning</th>
-                      <th className="py-2 pr-4 font-medium text-right">Fasta avgifter</th>
-                      <th className="py-2 font-medium text-right">Netto</th>
+                      <th className={`py-2 font-medium text-right${hasFixedFees ? " pr-4" : ""}`}>Ersättning</th>
+                      {hasFixedFees && (
+                        <>
+                          <th className="py-2 pr-4 font-medium text-right">Fasta avgifter</th>
+                          <th className="py-2 font-medium text-right">Netto</th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody className="font-mono">
@@ -1036,11 +1064,15 @@ export function AnalysisResults({
                           )}
                         </td>
                         <td className="py-1.5 pr-4 text-right">{formatNumber(m.production_kwh, 0)} kWh</td>
-                        <td className="py-1.5 pr-4 text-right">{formatCurrency(m.effektiv_ersattning_sek)}</td>
-                        <td className="py-1.5 pr-4 text-right text-muted-foreground">−{formatCurrency(m.fasta_avgifter_sek)}</td>
-                        <td className={`py-1.5 text-right ${(m.netto_sek ?? 0) < 0 ? "text-destructive" : "text-foreground"}`}>
-                          {formatCurrency(m.netto_sek)}
-                        </td>
+                        <td className={`py-1.5 text-right${hasFixedFees ? " pr-4" : ""}`}>{formatCurrency(m.effektiv_ersattning_sek)}</td>
+                        {hasFixedFees && (
+                          <>
+                            <td className="py-1.5 pr-4 text-right text-muted-foreground">−{formatCurrency(m.fasta_avgifter_sek)}</td>
+                            <td className={`py-1.5 text-right ${(m.netto_sek ?? 0) < 0 ? "text-destructive" : "text-foreground"}`}>
+                              {formatCurrency(m.netto_sek)}
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -1049,7 +1081,8 @@ export function AnalysisResults({
             )}
           </CardContent>
         </Card>
-      )}
+        );
+      })()}
 
       {/* Self-consumption valuation (separate, optional) — per-month savings breakdown */}
       {data.sjalvkonsumtion && (

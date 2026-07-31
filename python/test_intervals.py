@@ -9,8 +9,9 @@ import pandas as pd
 import pytest
 
 from core.intervals import (assess_resolution, combine_production,
-                            granularity_from_hours, infer_step_hours,
-                            interval_hours_series, step_consistency_pct)
+                            filter_production_direction, granularity_from_hours,
+                            infer_step_hours, interval_hours_series,
+                            step_consistency_pct)
 from core.price_analyzer import PriceAnalyzer, next_fuse_step, prev_fuse_step
 
 
@@ -424,3 +425,110 @@ def test_db_has_data_for_period_is_resolution_aware(tmp_path):
     # 96 quarter-hour points cover the day; the hourly-only heuristic would also pass,
     # but this confirms 15-min density is accepted as complete.
     assert db.has_data_for_period("SE3", start, end) is True
+
+
+# --- E.ON "Mätvärdesexport" format + optional fixed monthly fees -------------------
+
+
+EON_CSV = """\ufeffAnläggnings-id;Tidpunkt för export;Energiprodukt;Starttidpunkt;Sluttidpunkt;Måttenhet
+735999114013307011;2026-07-30 12:57:06;Aktiv energi;2025-10-01 00:00:00;2025-10-01 01:00:00;kWh
+
+Starttidpunkt;Sluttidpunkt;Energiriktning;Kvalitet;Kvantitet
+2025-10-01 00:00:00;2025-10-01 00:15:00;Produktion;Uppmätt;0,100
+2025-10-01 00:15:00;2025-10-01 00:30:00;Produktion;Uppmätt;0,200
+2025-10-01 00:30:00;2025-10-01 00:45:00;Produktion;Uppmätt;0,300
+2025-10-01 00:45:00;2025-10-01 01:00:00;Produktion;Uppmätt;0,400
+"""
+
+
+def test_eon_export_skips_metadata_preamble(tmp_path):
+    """E.ON prefixes the table with a metadata block; the real header is further down."""
+    from utils.csv_format_detector_fallback import CSVFormatDetectorFallback
+
+    path = tmp_path / "Mätvärdesexport.CSV"
+    path.write_text(EON_CSV, encoding="utf-8")
+
+    df = CSVFormatDetectorFallback().read(str(path))
+    assert list(df.columns) == [
+        "Starttidpunkt",
+        "Sluttidpunkt",
+        "Energiriktning",
+        "Kvalitet",
+        "Kvantitet",
+    ]
+    assert len(df) == 4
+    assert df["Kvantitet"].sum() == pytest.approx(1.0)
+
+
+def test_ordinary_csv_header_row_unaffected(tmp_path):
+    """A normal single-header file must still be read from line 1."""
+    from utils.csv_format_detector_fallback import CSVFormatDetectorFallback
+
+    path = tmp_path / "plain.csv"
+    path.write_text(
+        "Datum;Produktion kWh\n2025-10-01 00:00;1,5\n2025-10-01 01:00;2,5\n", encoding="utf-8"
+    )
+    df = CSVFormatDetectorFallback().read(str(path))
+    assert list(df.columns) == ["Datum", "Produktion kWh"]
+    assert len(df) == 2
+
+
+def test_energiriktning_filters_out_consumption_rows():
+    """A mixed export must not sum Förbrukning into production."""
+    df = pd.DataFrame(
+        {
+            "Starttidpunkt": ["2025-10-01 00:00", "2025-10-01 00:00", "2025-10-01 00:15"],
+            "Energiriktning": ["Produktion", "Förbrukning", "Produktion"],
+            "Kvantitet": [1.0, 9.0, 2.0],
+        }
+    )
+    out = filter_production_direction(df)
+    assert len(out) == 2
+    assert out["Kvantitet"].sum() == pytest.approx(3.0)
+
+    # No direction column -> untouched.
+    plain = pd.DataFrame({"Datum": ["2025-10-01 00:00"], "kWh": [1.0]})
+    assert len(filter_production_direction(plain)) == 1
+
+
+def _one_month_merged():
+    idx = pd.date_range("2025-10-01 00:00", periods=24 * 31, freq="h")
+    prices = pd.DataFrame({"price_eur_per_mwh": [100.0] * len(idx)}, index=idx)
+    production = pd.DataFrame({"production_kwh": [1.0] * len(idx)}, index=idx)
+    return PriceAnalyzer.merge_data(prices, production, eur_sek_rate=10.0)
+
+
+def test_monthly_forecast_omits_net_without_fixed_fees():
+    """An unfilled monthly fee means 'unknown', not 0 kr — so no net is reported."""
+    merged = _one_month_merged()
+    a = PriceAnalyzer.analyze_data(merged, fuse_amps=20, next_fuse_monthly_fee=500,
+                                   lower_fuse_monthly_fee=300)
+    f = a["monthly_forecast"]
+    assert f["has_fixed_fees"] is False
+    assert f["avg_net_sek"] is None
+    assert f["fixed_monthly_sek"] is None
+    assert f["months"][0]["net_sek"] is None
+    # Production and compensation are still known, so they are still reported.
+    assert f["avg_production_kwh"] > 0
+    assert f["avg_effective_sek"] > 0
+    # Both fuse verdicts compare against the current fee, so they need it.
+    assert "fuse_upgrade" not in a
+    assert "fuse_downgrade" not in a
+
+
+def test_monthly_forecast_reports_net_with_fixed_fees():
+    merged = _one_month_merged()
+    a = PriceAnalyzer.analyze_data(merged, fuse_amps=20, grid_monthly_fee=400,
+                                   next_fuse_monthly_fee=500, lower_fuse_monthly_fee=300)
+    f = a["monthly_forecast"]
+    assert f["has_fixed_fees"] is True
+    assert f["fixed_monthly_sek"] == pytest.approx(400)
+    assert f["avg_net_sek"] is not None
+    assert a["fuse_upgrade"]["extra_fee_sek_per_month"] == pytest.approx(100)
+    assert a["fuse_downgrade"]["saved_fee_sek_per_month"] == pytest.approx(100)
+
+    # Trader fee alone is enough to report a net.
+    only_trader = PriceAnalyzer.analyze_data(merged, trader_monthly_fee=59)["monthly_forecast"]
+    assert only_trader["has_fixed_fees"] is True
+    assert only_trader["fixed_monthly_sek"] == pytest.approx(59)
+    assert only_trader["grid_monthly_fee_sek"] is None

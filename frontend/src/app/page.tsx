@@ -881,7 +881,9 @@ export default function Home() {
                       className="max-w-[12rem]"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Fyll i för att se om det är värt att uppgradera huvudsäkringen ett steg (jämförs mot elnätets månadsavgift ovan).
+                      Fyll i för att se om det är värt att uppgradera huvudsäkringen ett steg. Kräver även{" "}
+                      <span className="text-foreground">elnätets nuvarande månadsavgift</span> nedan – jämförelsen görs
+                      mot den.
                     </p>
                   </div>
                 )}
@@ -902,7 +904,9 @@ export default function Home() {
                       className="max-w-[12rem]"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Fyll i för att se om du kunde sänka säkringen ett steg – du sparar abonnemang men kapar exporttoppar över den lägre gränsen.
+                      Fyll i för att se om du kunde sänka säkringen ett steg – du sparar abonnemang men kapar exporttoppar
+                      över den lägre gränsen. Kräver även{" "}
+                      <span className="text-foreground">elnätets nuvarande månadsavgift</span> nedan.
                     </p>
                   </div>
                 )}
@@ -938,7 +942,9 @@ export default function Home() {
                 </div>
 
                 <div className="space-y-2">
-                  <h5 className="text-sm font-medium text-foreground">Fasta månadsavgifter</h5>
+                  <h5 className="text-sm font-medium text-foreground">
+                    Fasta månadsavgifter <span className="font-normal text-muted-foreground">(valfritt)</span>
+                  </h5>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <Label htmlFor="grid-monthly" className="flex items-center gap-1.5">
@@ -956,7 +962,9 @@ export default function Home() {
                   <p className="text-xs text-muted-foreground">
                     Fasta abonnemangsavgifter – ange dem <span className="text-foreground">inkl. moms</span> (som på din
                     faktura). Till skillnad från öre-värdena dras de av rakt av från de uppskattade månadsintäkterna nedan.
-                    Elnätets avgift beror oftast på din säkringsstorlek ovan.
+                    Elnätets avgift beror oftast på din säkringsstorlek ovan. Lämnar du dem tomma får du fortfarande
+                    månadsrapporten – men bara ersättningen, inte nettot efter avgifter (en tom ruta betyder{" "}
+                    <span className="text-foreground">okänd avgift</span>, inte 0 kr).
                   </p>
                 </div>
 

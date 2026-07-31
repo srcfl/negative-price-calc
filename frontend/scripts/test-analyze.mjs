@@ -734,5 +734,110 @@ console.log("Test 20: drop data before 2025-10-01");
   eq(allBefore.droppedRows, 1, "all-before: 1 dropped");
 }
 
+// --- Test 21: E.ON "Mätvärdesexport" CSV (metadata preamble + start/end + direction) ---
+console.log("Test 21: E.ON Mätvärdesexport format");
+{
+  const eon = [
+    "﻿Anläggnings-id;Tidpunkt för export;Energiprodukt;Starttidpunkt;Sluttidpunkt;Måttenhet",
+    "735999114013307011;2026-07-30 12:57:06;Aktiv energi;2025-10-01 00:00:00;2025-10-01 01:00:00;kWh",
+    "",
+    "Starttidpunkt;Sluttidpunkt;Energiriktning;Kvalitet;Kvantitet",
+    "2025-10-01 00:00:00;2025-10-01 00:15:00;Produktion;Uppmätt;0,100",
+    "2025-10-01 00:15:00;2025-10-01 00:30:00;Produktion;Uppmätt;0,200",
+    "2025-10-01 00:30:00;2025-10-01 00:45:00;Produktion;Uppmätt;0,300",
+    "2025-10-01 00:45:00;2025-10-01 01:00:00;Produktion;Uppmätt;0,400",
+  ].join("\n");
+  const p = parseProductionCsv(eon);
+  eq(p.rows.length, 4, "eon: metadata preamble skipped, 4 data rows");
+  eq(p.datetimeColumn, "Starttidpunkt", "eon: datetime column from the real header");
+  eq(p.productionColumn, "Kvantitet", "eon: value column is Kvantitet, not Energiriktning");
+  eq(p.granularity, "15min", "eon: 15-min granularity");
+  eq(p.stepMinutes, 15, "eon: step from declared start/end");
+  approx(p.rows.reduce((s, r) => s + r.kwh, 0), 1.0, "eon: total kWh");
+  approx(p.rows[0].end - p.rows[0].start, 15 * 60 * 1000, "eon: interval end taken from Sluttidpunkt");
+  eq(assessResolution(p).isQuarterHour, true, "eon: passes 15-min validation");
+
+  // Mixed-direction export: consumption rows must not be summed into production.
+  const mixed = [
+    "Starttidpunkt;Sluttidpunkt;Energiriktning;Kvalitet;Kvantitet",
+    "2025-10-01 00:00:00;2025-10-01 00:15:00;Produktion;Uppmätt;1,000",
+    "2025-10-01 00:00:00;2025-10-01 00:15:00;Förbrukning;Uppmätt;9,000",
+    "2025-10-01 00:15:00;2025-10-01 00:30:00;Produktion;Uppmätt;2,000",
+    "2025-10-01 00:15:00;2025-10-01 00:30:00;Förbrukning;Uppmätt;9,000",
+  ].join("\n");
+  const pm = parseProductionCsv(mixed);
+  eq(pm.rows.length, 2, "eon mixed: consumption rows filtered out");
+  approx(pm.rows.reduce((s, r) => s + r.kwh, 0), 3.0, "eon mixed: only production summed");
+
+  // Unit declared in the metadata block rather than the value column header.
+  const mwh = [
+    "Anläggnings-id;Måttenhet",
+    "735999;MWh",
+    "",
+    "Starttidpunkt;Sluttidpunkt;Energiriktning;Kvalitet;Kvantitet",
+    "2025-10-01 00:00:00;2025-10-01 00:15:00;Produktion;Uppmätt;1,000",
+    "2025-10-01 00:15:00;2025-10-01 00:30:00;Produktion;Uppmätt;2,000",
+  ].join("\n");
+  approx(
+    parseProductionCsv(mwh).rows.reduce((s, r) => s + r.kwh, 0),
+    3000,
+    "eon: MWh from metadata converted to kWh"
+  );
+
+  // Spring-forward DST: E.ON writes 01:45 -> 03:00 for one quarter (wall clock jumps).
+  const dst = [
+    "Starttidpunkt;Sluttidpunkt;Energiriktning;Kvalitet;Kvantitet",
+    "2026-03-29 01:15:00;2026-03-29 01:30:00;Produktion;Uppmätt;1,000",
+    "2026-03-29 01:30:00;2026-03-29 01:45:00;Produktion;Uppmätt;1,000",
+    "2026-03-29 01:45:00;2026-03-29 03:00:00;Produktion;Uppmätt;1,000",
+    "2026-03-29 03:00:00;2026-03-29 03:15:00;Produktion;Uppmätt;1,000",
+  ].join("\n");
+  const pd = parseProductionCsv(dst);
+  const lengths = [...new Set(pd.rows.map((r) => (r.end - r.start) / 60000))];
+  eq(lengths.length, 1, "eon DST: no over-long interval survives");
+  eq(lengths[0], 15, "eon DST: 75-minute wall-clock gap capped to the 15-min step");
+}
+
+// --- Test 22: fixed monthly fees are optional -> smaller report ---
+console.log("Test 22: optional fixed monthly fees");
+{
+  const prod = [];
+  const prices = [];
+  // One full month of hourly data so the forecast block is produced.
+  for (let h = 0; h < 24 * 31; h++) {
+    const t = Date.UTC(2025, 9, 1) + h * H;
+    prod.push({ start: t, end: t + H, kwh: 1 });
+    prices.push({ start: t, end: t + H, sekPerKwh: 1.0, eurPerKwh: 0 });
+  }
+  const withoutFees = analyze(prod, prices, { fuseAmps: 20, nextFuseMonthlyFee: 500, lowerFuseMonthlyFee: 300 });
+  eq(withoutFees.manads_prognos.har_fasta_avgifter, false, "no fees: flagged as missing");
+  eq(withoutFees.manads_prognos.snitt_netto_sek, undefined, "no fees: net omitted, not computed vs 0 kr");
+  eq(withoutFees.manads_prognos.fasta_avgifter_sek_per_man, undefined, "no fees: fee field omitted");
+  eq(withoutFees.manads_prognos.manader[0].netto_sek, undefined, "no fees: per-month net omitted");
+  eq(withoutFees.manads_prognos.snitt_production_kwh > 0, true, "no fees: production still reported");
+  eq(withoutFees.manads_prognos.snitt_effektiv_ersattning_sek > 0, true, "no fees: compensation still reported");
+  // The fuse verdicts compare against the current fee, so they need it.
+  eq(withoutFees.sakringsuppgradering, undefined, "no current fee: upgrade verdict omitted");
+  eq(withoutFees.sakringsnedgradering, undefined, "no current fee: downgrade verdict omitted");
+
+  const withFees = analyze(prod, prices, {
+    fuseAmps: 20,
+    gridMonthlyFee: 400,
+    nextFuseMonthlyFee: 500,
+    lowerFuseMonthlyFee: 300,
+  });
+  eq(withFees.manads_prognos.har_fasta_avgifter, true, "with fees: flagged present");
+  approx(withFees.manads_prognos.fasta_avgifter_sek_per_man, 400, "with fees: fee reported");
+  eq(typeof withFees.manads_prognos.snitt_netto_sek, "number", "with fees: net computed");
+  approx(withFees.sakringsuppgradering.extra_avgift_kr_per_man, 100, "with fees: upgrade delta 500-400");
+  approx(withFees.sakringsnedgradering.sparad_avgift_kr_per_man, 100, "with fees: downgrade saving 400-300");
+
+  // Only the trader fee given: still enough to report a net.
+  const traderOnly = analyze(prod, prices, { traderMonthlyFee: 59 });
+  eq(traderOnly.manads_prognos.har_fasta_avgifter, true, "trader fee only: net still reported");
+  approx(traderOnly.manads_prognos.fasta_avgifter_sek_per_man, 59, "trader fee only: fee = 59");
+  eq(traderOnly.manads_prognos.elnat_avgift_sek_per_man, undefined, "trader fee only: grid fee omitted");
+}
+
 console.log(failures === 0 ? "\nALL PASSED" : `\n${failures} FAILURE(S)`);
 process.exit(failures === 0 ? 0 : 1);

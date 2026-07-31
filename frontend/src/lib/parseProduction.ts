@@ -7,9 +7,15 @@ import type { Granularity, ParsedProduction, ProductionInterval } from "./types"
 import { readWorkbook, type WorkbookSheet } from "./xlsx.ts";
 
 const DATE_HINTS = /(datum|date|tid|time|timestamp|från|start|period|hour|timme)/i;
+/** Columns holding the interval's *end* timestamp (E.ON "Sluttidpunkt"). Kept narrow so
+ *  ordinary words that merely contain "end" (e.g. "Kalender") don't match. */
+const END_HINTS = /(^slut|sluttid|slutdatum|^end\b|end_?(time|date)|^till$|t\.o\.m)/i;
 const PROD_HINTS =
-  /(produktion|production|export|inmatning|inmatad|levererad|kwh|mwh|energi|förbrukning|consumption|effekt|power|värde|value|netto)/i;
-const PREFERRED_PROD = /(export|inmat|produktion|production|kwh)/i;
+  /(produktion|production|export|inmatning|inmatad|levererad|kwh|mwh|energi|förbrukning|consumption|effekt|power|värde|value|netto|kvantitet|quantity|mängd)/i;
+const PREFERRED_PROD = /(export|inmat|produktion|production|kwh|kvantitet|quantity)/i;
+/** Column that says whether a row is production or consumption (E.ON "Energiriktning"). */
+const DIRECTION_HINTS = /(riktning|direction)/i;
+const PRODUCTION_DIRECTION = /(produktion|production|export|inmatning|inmatad|utmatad|levererad)/i;
 
 /** Parse a Swedish/European or plain number string into a float, or NaN. */
 export function parseNumber(raw: string): number {
@@ -120,6 +126,57 @@ function granularityFromMinutes(step: number): Granularity {
   return "daily";
 }
 
+/**
+ * Find the row that actually heads the data table.
+ *
+ * Most exports put the header on line 1, but E.ON's "Mätvärdesexport" (and a few other
+ * Swedish meter exports) prepend a metadata block — plant id, export timestamp, unit —
+ * with its own header/value pair, then a blank line, then the real table. Naively taking
+ * line 1 makes every data row unparseable.
+ *
+ * Scores each candidate by how many rows immediately below it share its column count and
+ * look like data (a parseable timestamp plus a parseable number). The real header is
+ * followed by thousands of such rows; a metadata header is followed by one. Ties go to the
+ * earliest row, so ordinary single-header files behave exactly as before.
+ */
+function findHeaderRow(lines: string[]): { index: number; delim: string } {
+  const MAX_PREAMBLE = 25; // metadata blocks are a handful of lines, never deep
+  const MAX_PROBE = 40; // enough to separate "real table" from "one metadata row"
+  let best = { index: 0, delim: detectDelimiter(lines[0]), score: -1 };
+
+  for (let h = 0; h < Math.min(lines.length - 1, MAX_PREAMBLE); h++) {
+    const delim = detectDelimiter(lines[h]);
+    const width = splitLine(lines[h], delim).length;
+    if (width < 2) continue;
+    let score = 0;
+    for (let r = h + 1; r < lines.length && score < MAX_PROBE; r++) {
+      const row = splitLine(lines[r], delim);
+      if (row.length !== width) break;
+      const hasTs = row.some((c) => parseTimestamp(c) != null);
+      const hasNum = row.some((c) => Number.isFinite(parseNumber(c)));
+      if (!hasTs || !hasNum) break;
+      score++;
+    }
+    if (score > best.score) best = { index: h, delim, score };
+  }
+  return best;
+}
+
+/**
+ * Unit of the value column. E.ON states it in the metadata block ("Måttenhet;kWh") rather
+ * than in the value column's own header, so fall back to scanning the skipped preamble.
+ */
+function detectMwh(valueHeader: string, preamble: string[][]): boolean {
+  if (/mwh/i.test(valueHeader)) return !/kwh/i.test(valueHeader);
+  for (const row of preamble) {
+    for (const cell of row) {
+      if (/^mwh$/i.test(cell.trim())) return true;
+      if (/^kwh$/i.test(cell.trim())) return false;
+    }
+  }
+  return false;
+}
+
 export function parseProductionCsv(text: string, filename = ""): ParsedProduction {
   if (/\.xls[xm]?$/i.test(filename) && /PK/.test(text.slice(0, 4))) {
     // Excel files are binary (a ZIP); route them through parseProductionXlsx, not here.
@@ -131,63 +188,99 @@ export function parseProductionCsv(text: string, filename = ""): ParsedProductio
   const rawLines = text.split(/\r?\n/).filter((l) => l.trim() !== "");
   if (rawLines.length < 2) throw new Error("Filen verkar tom eller saknar datarader.");
 
-  const delim = detectDelimiter(rawLines[0]);
-  const header = splitLine(rawLines[0], delim);
+  // Skip any metadata preamble (E.ON) and use the row that really heads the table.
+  const { index: headerIdx, delim } = findHeaderRow(rawLines);
+  const header = splitLine(rawLines[headerIdx], delim);
+  const preamble = rawLines.slice(0, headerIdx).map((l) => splitLine(l, delim));
+  const firstDataRow = headerIdx + 1 < rawLines.length ? splitLine(rawLines[headerIdx + 1], delim) : [];
 
   // Locate columns by header hints.
   let dtIdx = header.findIndex((h) => DATE_HINTS.test(h));
+  if (dtIdx === -1) dtIdx = 0;
+
+  // An explicit interval-end column ("Sluttidpunkt") is authoritative — but only if it
+  // really holds timestamps, so a look-alike header can't hijack the value column.
+  const endIdx = header.findIndex(
+    (h, i) =>
+      i !== dtIdx && END_HINTS.test(h) && parseTimestamp(firstDataRow[i] ?? "") != null
+  );
+
+  // Rows may be tagged production vs consumption; we only want what was fed to the grid.
+  const dirIdx = header.findIndex((h, i) => i !== dtIdx && i !== endIdx && DIRECTION_HINTS.test(h));
+
+  const skip = (i: number) => i === dtIdx || i === endIdx || i === dirIdx;
+
   let prodIdx = -1;
   // Prefer columns whose header clearly means exported energy.
   for (let i = 0; i < header.length; i++) {
-    if (i === dtIdx) continue;
+    if (skip(i)) continue;
     if (PREFERRED_PROD.test(header[i])) {
       prodIdx = i;
       break;
     }
   }
-  if (prodIdx === -1) prodIdx = header.findIndex((h, i) => i !== dtIdx && PROD_HINTS.test(h));
+  if (prodIdx === -1) prodIdx = header.findIndex((h, i) => !skip(i) && PROD_HINTS.test(h));
 
-  // Fallback: first column is datetime, first numeric column is production.
-  if (dtIdx === -1) dtIdx = 0;
+  // Fallback: first numeric column that isn't a timestamp/direction column.
   if (prodIdx === -1) {
-    const probe = splitLine(rawLines[1], delim);
-    prodIdx = probe.findIndex((v, i) => i !== dtIdx && Number.isFinite(parseNumber(v)));
+    prodIdx = firstDataRow.findIndex(
+      (v, i) => !skip(i) && Number.isFinite(parseNumber(v)) && parseTimestamp(v) == null
+    );
   }
   if (prodIdx === -1) throw new Error("Hittade ingen produktions-/exportkolumn i filen.");
 
-  const isMwh = /mwh/i.test(header[prodIdx]) && !/kwh/i.test(header[prodIdx]);
+  const isMwh = detectMwh(header[prodIdx], preamble);
 
   // Parse rows.
-  const points: { start: number; kwh: number }[] = [];
-  for (let r = 1; r < rawLines.length; r++) {
+  const points: { start: number; end: number | null; kwh: number }[] = [];
+  const widest = Math.max(dtIdx, prodIdx, endIdx, dirIdx);
+  for (let r = headerIdx + 1; r < rawLines.length; r++) {
     const cols = splitLine(rawLines[r], delim);
-    if (cols.length <= Math.max(dtIdx, prodIdx)) continue;
+    if (cols.length <= widest) continue;
+    // Consumption/import row in a mixed export — not our series.
+    if (dirIdx >= 0 && cols[dirIdx] && !PRODUCTION_DIRECTION.test(cols[dirIdx])) continue;
     const ts = parseTimestamp(cols[dtIdx]);
     const val = parseNumber(cols[prodIdx]);
     if (ts == null || !Number.isFinite(val)) continue;
-    points.push({ start: ts, kwh: isMwh ? val * 1000 : val });
+    const end = endIdx >= 0 ? parseTimestamp(cols[endIdx]) : null;
+    points.push({ start: ts, end: end != null && end > ts ? end : null, kwh: isMwh ? val * 1000 : val });
   }
 
   if (points.length === 0) throw new Error("Kunde inte tolka några giltiga rader (datum + värde).");
   points.sort((a, b) => a.start - b.start);
 
-  // Infer the interval length from spacing between consecutive timestamps.
+  // Interval length: prefer each row's own declared duration (E.ON ships start+end), and
+  // fall back to the spacing between consecutive start timestamps. Declared durations stay
+  // correct across gaps in the series, where start-to-start spacing does not.
+  const declaredMin = points.filter((p) => p.end != null).map((p) => (p.end! - p.start) / 60000);
   const diffsMin: number[] = [];
   for (let i = 1; i < points.length; i++) {
     const d = (points[i].start - points[i - 1].start) / 60000;
     if (d > 0) diffsMin.push(d);
   }
-  const stepMinutes = diffsMin.length ? median(diffsMin) : 60;
+  // Only trust declared durations when most rows carry one.
+  const useDeclared = declaredMin.length >= points.length * 0.9 && declaredMin.length > 0;
+  const sample = useDeclared ? declaredMin : diffsMin;
+  const stepMinutes = sample.length ? median(sample) : 60;
   const stepMs = stepMinutes * 60000;
 
-  // How regular is the spacing? (share of gaps equal to the dominant step, within 10%).
+  // How regular is the data? (share of intervals equal to the dominant step, within 10%).
   const tol = Math.max(1, stepMinutes * 0.1);
-  const matching = diffsMin.filter((d) => Math.abs(d - stepMinutes) <= tol).length;
-  const stepConsistencyPct = diffsMin.length
-    ? Math.round((matching / diffsMin.length) * 1000) / 10
+  const matching = sample.filter((d) => Math.abs(d - stepMinutes) <= tol).length;
+  const stepConsistencyPct = sample.length
+    ? Math.round((matching / sample.length) * 1000) / 10
     : 100;
 
   const rows: ProductionInterval[] = points.map((p, i) => {
+    if (p.end != null) {
+      // A declared span far longer than the step is a clock artifact rather than a real
+      // duration: at the spring-forward DST switch E.ON writes "01:45 -> 03:00" for a
+      // single quarter, because the wall clock jumps an hour. Timestamps here are naive
+      // wall-clock, so charging that row 75 minutes would give it five times its true
+      // weight in the duration-based metrics. Cap it at the normal step.
+      const end = p.end - p.start > 2 * stepMs ? p.start + stepMs : p.end;
+      return { start: p.start, end, kwh: p.kwh };
+    }
     const next = i + 1 < points.length ? points[i + 1].start : p.start + stepMs;
     // Guard against gaps: cap an interval at the inferred step length.
     const end = Math.min(next, p.start + stepMs);

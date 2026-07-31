@@ -405,8 +405,13 @@ export function analyze(
   // value it at the effective export price during the very quarters that hit the cap.
   const upgFuseAmps = opts.fuseAmps ?? 0;
   const upgVoltage = opts.voltage ?? 400;
+  // Both fuse verdicts compare the *current* subscription fee against the alternative one,
+  // so they need both numbers. Without the current fee the comparison would be against
+  // 0 kr/month, which reads as a confident answer while being meaningless — omit instead.
   const upgNextAmps =
-    upgFuseAmps > 0 && opts.nextFuseMonthlyFee != null ? nextFuseStep(upgFuseAmps) : undefined;
+    upgFuseAmps > 0 && opts.nextFuseMonthlyFee != null && opts.gridMonthlyFee != null
+      ? nextFuseStep(upgFuseAmps)
+      : undefined;
   const upgCurLimitKw = (SQRT3 * upgVoltage * upgFuseAmps) / 1000;
   const upgNextLimitKw = upgNextAmps ? (SQRT3 * upgVoltage * upgNextAmps) / 1000 : 0;
   const upgThreshold = upgCurLimitKw * MAXED_FRACTION;
@@ -438,7 +443,9 @@ export function analyze(
   // concrete: from your actual production we know exactly how much export would be clipped if
   // the fuse were lowered (the part of each quarter's power above the lower limit).
   const dnPrevAmps =
-    upgFuseAmps > 0 && opts.lowerFuseMonthlyFee != null ? prevFuseStep(upgFuseAmps) : undefined;
+    upgFuseAmps > 0 && opts.lowerFuseMonthlyFee != null && opts.gridMonthlyFee != null
+      ? prevFuseStep(upgFuseAmps)
+      : undefined;
   const dnPrevLimitKw = dnPrevAmps ? (SQRT3 * upgVoltage * dnPrevAmps) / 1000 : 0;
   let dnLostKwh = 0;
   let dnLostValue = 0;
@@ -591,8 +598,12 @@ export function analyze(
   // Monthly forecast: for each month with FULL data coverage, project what to expect.
   // Effective compensation aggregates affinely from the month's spot revenue and energy;
   // net subtracts the fixed monthly fees (elnät subscription + elhandel monthly fee).
+  // Fixed monthly fees are optional. When none is given we still report production and
+  // effective compensation per month, but omit the net-after-fees figures rather than
+  // silently treating an unfilled fee as 0 kr — that would overstate the net.
   const gridMonthlyFee = opts.gridMonthlyFee ?? 0;
   const traderMonthlyFee = opts.traderMonthlyFee ?? 0;
+  const hasFixedMonthly = opts.gridMonthlyFee != null || opts.traderMonthlyFee != null;
   const fixedMonthly = gridMonthlyFee + traderMonthlyFee;
   const DAY_MS = 24 * MS_PER_HOUR;
   // Always express the forecast per FULL month so the fixed monthly fees apply consistently.
@@ -624,9 +635,10 @@ export function analyze(
       ? {
           antal_manader: forecastMonths.length,
           fullstandiga_manader: forecastMonths.filter((m) => m.complete).length,
-          elnat_avgift_sek_per_man: round(gridMonthlyFee, 2),
-          elhandel_avgift_sek_per_man: round(traderMonthlyFee, 2),
-          fasta_avgifter_sek_per_man: round(fixedMonthly, 2),
+          har_fasta_avgifter: hasFixedMonthly,
+          elnat_avgift_sek_per_man: opts.gridMonthlyFee != null ? round(gridMonthlyFee, 2) : undefined,
+          elhandel_avgift_sek_per_man: opts.traderMonthlyFee != null ? round(traderMonthlyFee, 2) : undefined,
+          fasta_avgifter_sek_per_man: hasFixedMonthly ? round(fixedMonthly, 2) : undefined,
           manader: forecastMonths.map((m) => ({
             period: m.period,
             complete: m.complete,
@@ -634,12 +646,14 @@ export function analyze(
             dagar_i_manad: Math.round(m.daysInMonth),
             production_kwh: round(m.production, 1),
             effektiv_ersattning_sek: round(m.effective, 2),
-            fasta_avgifter_sek: round(fixedMonthly, 2),
-            netto_sek: round(m.net, 2),
+            fasta_avgifter_sek: hasFixedMonthly ? round(fixedMonthly, 2) : undefined,
+            netto_sek: hasFixedMonthly ? round(m.net, 2) : undefined,
           })),
           snitt_production_kwh: round(forecastMonths.reduce((s, m) => s + m.production, 0) / forecastMonths.length, 1),
           snitt_effektiv_ersattning_sek: round(forecastMonths.reduce((s, m) => s + m.effective, 0) / forecastMonths.length, 2),
-          snitt_netto_sek: round(forecastMonths.reduce((s, m) => s + m.net, 0) / forecastMonths.length, 2),
+          snitt_netto_sek: hasFixedMonthly
+            ? round(forecastMonths.reduce((s, m) => s + m.net, 0) / forecastMonths.length, 2)
+            : undefined,
         }
       : undefined;
 

@@ -6,6 +6,7 @@ one hour". These helpers infer the per-row interval length so energy/cost sums a
 "hours" metrics stay correct at any resolution.
 """
 
+import re
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -175,3 +176,30 @@ def assess_resolution(index: pd.DatetimeIndex) -> ResolutionAssessment:
             "quarters and short export peaks."
         ),
     )
+
+
+# Column naming each row's energy direction, and the values meaning "fed to the grid".
+DIRECTION_HINTS = re.compile(r"(?:riktning|direction)", re.I)
+# Non-capturing: pandas' str.contains warns when a pattern has match groups.
+PRODUCTION_DIRECTION = re.compile(
+    r"(?:produktion|production|export|inmatning|inmatad|utmatad|levererad)", re.I
+)
+
+
+def filter_production_direction(df: pd.DataFrame) -> pd.DataFrame:
+    """Keep only production rows when the export tags each row's energy direction.
+
+    E.ON's "Mätvärdesexport" carries an "Energiriktning" column; a file holding both
+    Produktion and Förbrukning would otherwise sum consumption into production. This is a
+    no-op when there is no such column, or when every row already has the same direction.
+
+    Mirrors the Energiriktning filter in frontend/src/lib/parseProduction.ts.
+    """
+    for c in df.columns:
+        if not DIRECTION_HINTS.search(str(c)):
+            continue
+        is_production = df[c].astype(str).str.contains(PRODUCTION_DIRECTION)
+        if is_production.any() and not is_production.all():
+            return df[is_production].copy()
+        return df
+    return df

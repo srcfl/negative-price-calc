@@ -137,9 +137,15 @@ export interface AnalysisResult {
   manads_prognos?: {
     antal_manader: number;
     fullstandiga_manader: number;
-    elnat_avgift_sek_per_man: number;
-    elhandel_avgift_sek_per_man: number;
-    fasta_avgifter_sek_per_man: number;
+    /**
+     * True when at least one fixed monthly fee was supplied. When false the net-after-fees
+     * fields below are omitted (an unfilled fee is "unknown", not 0 kr), and the forecast
+     * reports production and effective compensation only.
+     */
+    har_fasta_avgifter: boolean;
+    elnat_avgift_sek_per_man?: number;
+    elhandel_avgift_sek_per_man?: number;
+    fasta_avgifter_sek_per_man?: number;
     manader: Array<{
       period: string;
       /** True if the month had full data; false if scaled up from a partial month. */
@@ -148,12 +154,12 @@ export interface AnalysisResult {
       dagar_i_manad: number;
       production_kwh: number;
       effektiv_ersattning_sek: number;
-      fasta_avgifter_sek: number;
-      netto_sek: number;
+      fasta_avgifter_sek?: number;
+      netto_sek?: number;
     }>;
     snitt_production_kwh: number;
     snitt_effektiv_ersattning_sek: number;
-    snitt_netto_sek: number;
+    snitt_netto_sek?: number;
   };
   /**
    * Effective export compensation: what you actually get paid for exported energy.

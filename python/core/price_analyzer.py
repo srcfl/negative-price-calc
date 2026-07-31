@@ -479,8 +479,12 @@ class PriceAnalyzer:
         # consistently. Partial months (start/end of the data) are scaled up by their
         # coverage and flagged. Mirrors analyze.ts.
         if total_kwh > 0:
+            # Fixed monthly fees are optional. Without any, report production and effective
+            # compensation but omit the net-after-fees figures rather than silently treating
+            # an unfilled fee as 0 kr (which would overstate the net). Mirrors analyze.ts.
             g_month = grid_monthly_fee or 0.0
             t_month = trader_monthly_fee or 0.0
+            has_fixed_monthly = grid_monthly_fee is not None or trader_monthly_fee is not None
             fixed_monthly = g_month + t_month
             pct_frac = (g_pct + t_pct) / 100.0
             tot_fixed = g_fixed + t_fixed
@@ -507,21 +511,26 @@ class PriceAnalyzer:
                     'days_in_month': round(days_in_month),
                     'production_kwh': round(kwh_month * scale, 1),
                     'effective_sek': round(effective * scale, 2),
-                    'fixed_fees_sek': round(fixed_monthly, 2),
-                    'net_sek': round(effective * scale - fixed_monthly, 2),
+                    'fixed_fees_sek': round(fixed_monthly, 2) if has_fixed_monthly else None,
+                    'net_sek': round(effective * scale - fixed_monthly, 2) if has_fixed_monthly else None,
                 })
             if forecast_months:
                 n = len(forecast_months)
                 analysis['monthly_forecast'] = {
                     'months_count': n,
                     'full_months': sum(1 for m in forecast_months if m['complete']),
-                    'grid_monthly_fee_sek': round(g_month, 2),
-                    'trader_monthly_fee_sek': round(t_month, 2),
-                    'fixed_monthly_sek': round(fixed_monthly, 2),
+                    'has_fixed_fees': has_fixed_monthly,
+                    'grid_monthly_fee_sek': round(g_month, 2) if grid_monthly_fee is not None else None,
+                    'trader_monthly_fee_sek': round(t_month, 2) if trader_monthly_fee is not None else None,
+                    'fixed_monthly_sek': round(fixed_monthly, 2) if has_fixed_monthly else None,
                     'months': forecast_months,
                     'avg_production_kwh': round(sum(m['production_kwh'] for m in forecast_months) / n, 1),
                     'avg_effective_sek': round(sum(m['effective_sek'] for m in forecast_months) / n, 2),
-                    'avg_net_sek': round(sum(m['net_sek'] for m in forecast_months) / n, 2),
+                    'avg_net_sek': (
+                        round(sum(m['net_sek'] for m in forecast_months) / n, 2)
+                        if has_fixed_monthly
+                        else None
+                    ),
                 }
 
         # Fuse upgrade ("is a bigger main fuse worth it?"). Mirrors analyze.ts
@@ -529,7 +538,14 @@ class PriceAnalyzer:
         # (best-case) value of export a bigger fuse would unlock during the quarters that hit
         # the cap — counting only sustained clipping (≥2 consecutive intervals) and bounded by
         # the installed kWp (a bigger fuse only helps up to what the panels can produce).
-        next_amp = next_fuse_step(fuse_amps) if (fuse_amps and next_fuse_monthly_fee is not None) else None
+        # Both fuse verdicts compare the *current* subscription fee against the alternative,
+        # so they need both numbers; without the current fee the comparison would run against
+        # 0 kr/month and read as a confident answer while being meaningless. Mirrors analyze.ts.
+        next_amp = (
+            next_fuse_step(fuse_amps)
+            if (fuse_amps and next_fuse_monthly_fee is not None and grid_monthly_fee is not None)
+            else None
+        )
         if next_amp is not None:
             cur_limit_kw = (3 ** 0.5) * voltage * fuse_amps / 1000.0
             next_limit_kw = (3 ** 0.5) * voltage * next_amp / 1000.0
@@ -601,7 +617,11 @@ class PriceAnalyzer:
         # Fuse downgrade ("would a smaller fuse pay off?"). Mirrors analyze.ts
         # sakringsnedgradering: weigh the annual subscription saving against the export a lower
         # fuse would clip (power above the lower limit). Concrete, from the actual production.
-        prev_amp = prev_fuse_step(fuse_amps) if (fuse_amps and lower_fuse_monthly_fee is not None) else None
+        prev_amp = (
+            prev_fuse_step(fuse_amps)
+            if (fuse_amps and lower_fuse_monthly_fee is not None and grid_monthly_fee is not None)
+            else None
+        )
         if prev_amp is not None:
             cur_limit_kw = (3 ** 0.5) * voltage * fuse_amps / 1000.0
             prev_limit_kw = (3 ** 0.5) * voltage * prev_amp / 1000.0

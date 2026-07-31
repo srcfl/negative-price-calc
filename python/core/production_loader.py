@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 import numpy as np
 import pandas as pd
 
+from core.intervals import filter_production_direction
 from utils.csv_format_detector_fallback import CSVFormatDetectorFallback
 from utils.ai_table_reader import AITableReader
 
@@ -87,6 +88,7 @@ class ProductionLoader:
     ) -> Tuple[pd.DataFrame, str]:
         """Process DataFrame when column names are known (from AI)."""
         df = df.rename(columns={c: str(c).strip() for c in df.columns})
+        df = filter_production_direction(df)
 
         # Validate columns exist
         if datetime_col not in df.columns:
@@ -125,6 +127,7 @@ class ProductionLoader:
     def _process_auto(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, str]:
         """Process DataFrame with auto-detected columns (fallback path)."""
         df = df.rename(columns={c: str(c).strip() for c in df.columns})
+        df = filter_production_direction(df)
 
         date_col = self._infer_date_col(df)
         prod_col = self._infer_prod_col(df)
